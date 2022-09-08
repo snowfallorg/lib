@@ -89,7 +89,7 @@ library instance with `mkLib`.
 ```
 
 For information on how to use `lib`, see the [`lib`](#lib) section. Or skip directly
-to [`lib.mkFlake`](#lib.mkflake) to see how to configure your flake's outputs.
+to [`lib.mkFlake`](#libmkflake) to see how to configure your flake's outputs.
 
 ### `mkFlake`
 

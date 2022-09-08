@@ -43,6 +43,6 @@ let
 in
 {
   internal = {
-    inherit system-lib;
+    inherit system-lib user-lib;
   };
 }

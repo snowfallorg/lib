@@ -69,29 +69,29 @@ rec {
   mkFlake = full-flake-options:
     let
       custom-flake-options = flake.without-snowfall-options full-flake-options;
-      systems = snowfall-lib.system.create-systems (full-flake-options.systems or {});
-      hosts = snowfall-lib.attrs.merge-shallow [ (full-flake-options.systems.hosts or {}) systems ];
+      systems = snowfall-lib.system.create-systems (full-flake-options.systems or { });
+      hosts = snowfall-lib.attrs.merge-shallow [ (full-flake-options.systems.hosts or { }) systems ];
       templates = snowfall-lib.template.create-templates {
-        overrides = (full-flake-options.templates or {});
+        overrides = (full-flake-options.templates or { });
       };
       modules = snowfall-lib.module.create-modules {
-        overrides = (full-flake-options.modules or {});
+        overrides = (full-flake-options.modules or { });
       };
 
       outputs-builder = channels:
         let
           user-outputs-builder =
             full-flake-options.outputs-builder
-            or full-flake-options.outputsBuilder
-            or (const {});
+              or full-flake-options.outputsBuilder
+              or (const { });
           user-outputs = user-outputs-builder channels;
           packages = snowfall-lib.package.create-packages {
             inherit channels;
-            overrides = (full-flake-options.packages or {}) // (user-outputs.packages or {});
+            overrides = (full-flake-options.packages or { }) // (user-outputs.packages or { });
           };
           shells = snowfall-lib.shell.create-shells {
             inherit channels;
-            overrides = (full-flake-options.shells or {}) // (user-outputs.devShells or {});
+            overrides = (full-flake-options.shells or { }) // (user-outputs.devShells or { });
           };
 
           outputs = {
@@ -106,12 +106,12 @@ rec {
         inherit hosts templates;
         inherit (user-inputs) self;
 
-        lib = snowfall-lib.internal.system-lib;
+        lib = snowfall-lib.internal.user-lib;
         inputs = snowfall-lib.flake.without-src user-inputs;
 
         nixosModules = modules;
 
-        channelsConfig = full-flake-options.channels-config or {};
+        channelsConfig = full-flake-options.channels-config or { };
 
         overlays = core-inputs.flake-utils-plus.lib.exportOverlays ({
           inherit (user-inputs.self) pkgs;
@@ -120,7 +120,7 @@ rec {
 
         channels.nixpkgs.overlaysBuilder = snowfall-lib.overlay.create-overlays {
           overlay-package-namespace = full-flake-options.overlay-package-namespace or null;
-          extra-overlays = full-flake-options.overlays or [];
+          extra-overlays = full-flake-options.overlays or [ ];
         };
 
         outputsBuilder = outputs-builder;

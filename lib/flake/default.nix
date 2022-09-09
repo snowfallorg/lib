@@ -4,7 +4,7 @@
 }:
 
 let
-  inherit (core-inputs.nixpkgs.lib) assertMsg fold filterAttrs const;
+  inherit (core-inputs.nixpkgs.lib) assertMsg foldl filterAttrs const;
 in
 rec {
   flake = rec {
@@ -132,23 +132,26 @@ rec {
         let
           overlay-package-namespace = full-flake-options.overlay-package-namespace or null;
           user-overlay-packages =
-            snowfall-lib.attrs.merge-deep
-              (builtins.map (overlay: overlay final prev) (builtins.attrValues flake-outputs.overlays));
-        in
-        if overlay-package-namespace == null then
-          user-overlay-packages
-        else if prev ? "${overlay-package-namespace}" then
-          {
-            ${overlay-package-namespace} =
-              snowfall-lib.attrs.merge-deep [
-                prev.${overlay-package-namespace}
+            (builtins.map (overlay: overlay final prev) (builtins.attrValues flake-outputs.overlays));
+          namespaced-user-overlay-packages =
+            foldl
+              (namespaced-user-overlay-packages: user-overlay-package:
+                namespaced-user-overlay-packages // user-overlay-package.${overlay-package-namespace}
+              )
+              { }
+              user-overlay-packages;
+          merged-user-overlay-packages =
+            if overlay-package-namespace == null then
+              snowfall-lib.attrs.merge-shallow
                 user-overlay-packages
-              ];
-          }
-        else
-          {
-            ${overlay-package-namespace} = user-overlay-packages;
-          }
+            else
+              {
+                ${overlay-package-namespace} =
+                  (prev.${overlay-package-namespace} or { })
+                  // namespaced-user-overlay-packages;
+              };
+        in
+        merged-user-overlay-packages
       );
     in
     flake-outputs // {

@@ -25,6 +25,7 @@ in
         user-packages-overlay = final: prev:
           let
             user-packages = snowfall-lib.package.create-packages {
+              pkgs = prev;
               channels = channels;
             };
             user-packages-without-default = builtins.removeAttrs
@@ -32,6 +33,14 @@ in
           in
           if overlay-package-namespace == null then
             user-packages-without-default
+          else if prev ? "${overlay-package-namespace}" then
+            {
+              ${overlay-package-namespace} =
+                snowfall-lib.attrs.merge-deep [
+                  prev.${overlay-package-namespace}
+                  user-packages-without-default
+                ];
+            }
           else
             {
               ${overlay-package-namespace} = user-packages-without-default;

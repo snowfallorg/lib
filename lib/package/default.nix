@@ -17,13 +17,14 @@ in
     create-packages =
       { channels
       , src ? user-packages-root
+      , pkgs ? channels.nixpkgs
       , overrides ? { }
       }:
       let
         user-packages = snowfall-lib.fs.get-default-nix-files-recursive src;
         create-package-metadata = package: {
           name = builtins.unsafeDiscardStringContext (snowfall-lib.path.get-parent-directory package);
-          drv = channels.nixpkgs.callPackage package {
+          drv = pkgs.callPackage package {
             inherit channels;
             lib = snowfall-lib.internal.system-lib;
           };

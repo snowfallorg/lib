@@ -79,14 +79,8 @@ rec {
         overrides = (full-flake-options.modules or { });
       };
       overlays = core-inputs.flake-utils-plus.lib.exportOverlays ({
-        inherit (user-inputs.self) pkgs;
-        inputs = user-inputs;
+        inherit (user-inputs.self) pkgs inputs;
       });
-
-      overlay = (final: prev:
-        snowfall-lib.attrs.merge-deep
-          (builtins.map (overlay: overlay final prev) (builtins.attrValues overlays))
-      );
 
       outputs-builder = channels:
         let
@@ -113,7 +107,7 @@ rec {
         snowfall-lib.attrs.merge-deep [ user-outputs outputs ];
 
       flake-options = custom-flake-options // {
-        inherit hosts templates overlays overlay;
+        inherit hosts templates overlays;
         inherit (user-inputs) self;
 
         lib = snowfall-lib.internal.user-lib;
@@ -130,6 +124,16 @@ rec {
 
         outputsBuilder = outputs-builder;
       };
+
+      flake-outputs =
+        core-inputs.flake-utils-plus.lib.mkFlake flake-options;
+
+      overlay = (final: prev:
+        snowfall-lib.attrs.merge-deep
+          (builtins.map (overlay: overlay final prev) (builtins.attrValues flake-outputs.overlays))
+      );
     in
-    core-inputs.flake-utils-plus.lib.mkFlake flake-options;
+    flake-outputs // {
+      inherit overlay;
+    };
 }

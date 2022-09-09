@@ -130,7 +130,7 @@ rec {
 
       overlay = (final: prev:
         let
-          inherit (full-flake-options) overlay-package-namespace;
+          overlay-package-namespace = full-flake-options.overlay-package-namespace or null;
           user-overlay-packages =
             snowfall-lib.attrs.merge-deep
               (builtins.map (overlay: overlay final prev) (builtins.attrValues flake-outputs.overlays));

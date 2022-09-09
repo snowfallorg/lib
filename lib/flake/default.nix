@@ -45,6 +45,7 @@ rec {
           "hosts"
           "channels-config"
           "templates"
+          "overlay-package-namespace"
         ];
 
     # Transform an attribute set of inputs into an attribute set where

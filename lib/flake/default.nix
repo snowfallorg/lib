@@ -135,7 +135,7 @@ rec {
             snowfall-lib.attrs.merge-deep
               (builtins.map (overlay: overlay final prev) (builtins.attrValues flake-outputs.overlays));
         in
-        if overlay-package-namespace or null == null then
+        if overlay-package-namespace == null then
           user-overlay-packages
         else if prev ? "${overlay-package-namespace}" then
           {

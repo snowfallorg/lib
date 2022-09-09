@@ -129,8 +129,26 @@ rec {
         core-inputs.flake-utils-plus.lib.mkFlake flake-options;
 
       overlay = (final: prev:
-        snowfall-lib.attrs.merge-deep
-          (builtins.map (overlay: overlay final prev) (builtins.attrValues flake-outputs.overlays))
+        let
+          inherit (full-flake-options) overlay-package-namespace;
+          user-overlay-packages =
+            snowfall-lib.attrs.merge-deep
+              (builtins.map (overlay: overlay final prev) (builtins.attrValues flake-outputs.overlays));
+        in
+        if overlay-package-namespace or null == null then
+          user-overlay-packages
+        else if prev ? "${overlay-package-namespace}" then
+          {
+            ${overlay-package-namespace} =
+              snowfall-lib.attrs.merge-deep [
+                prev.${overlay-package-namespace}
+                user-overlay-packages
+              ];
+          }
+        else
+          {
+            ${overlay-package-namespace} = user-overlay-packages;
+          }
       );
     in
     flake-outputs // {

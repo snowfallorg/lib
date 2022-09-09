@@ -78,6 +78,15 @@ rec {
       modules = snowfall-lib.module.create-modules {
         overrides = (full-flake-options.modules or { });
       };
+      overlays = core-inputs.flake-utils-plus.lib.exportOverlays ({
+        inherit (user-inputs.self) pkgs;
+        inputs = user-inputs;
+      });
+
+      overlay = (final: prev:
+        snowfall-lib.attrs.merge-deep
+          (builtins.map (overlay: overlay final prev) (builtins.attrValues overlays))
+      );
 
       outputs-builder = channels:
         let
@@ -104,7 +113,7 @@ rec {
         snowfall-lib.attrs.merge-deep [ user-outputs outputs ];
 
       flake-options = custom-flake-options // {
-        inherit hosts templates;
+        inherit hosts templates overlays overlay;
         inherit (user-inputs) self;
 
         lib = snowfall-lib.internal.user-lib;
@@ -113,11 +122,6 @@ rec {
         nixosModules = modules;
 
         channelsConfig = full-flake-options.channels-config or { };
-
-        overlays = core-inputs.flake-utils-plus.lib.exportOverlays ({
-          inherit (user-inputs.self) pkgs;
-          inputs = user-inputs;
-        });
 
         channels.nixpkgs.overlaysBuilder = snowfall-lib.overlay.create-overlays {
           overlay-package-namespace = full-flake-options.overlay-package-namespace or null;

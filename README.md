@@ -66,7 +66,7 @@ library instance with `mkLib`.
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -247,7 +247,7 @@ packages, overlays, and shells specified by the [Flake Structure](#flake-structu
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -279,7 +279,7 @@ You can apply overlays and modules from your flake's inputs with the following o
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -338,7 +338,7 @@ on `pkgs` and consumers of your flake can use the generated `<your-flake>.overla
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -391,7 +391,7 @@ mapping the `default` package or shell to the name of the one you want.
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -437,7 +437,7 @@ include `darwin` and/or `nixos-generators` as inputs.
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -995,6 +995,39 @@ Result:
 { x = 2; }
 ```
 
+#### `lib.snowfall.attrs.merge-shallow-packages`
+
+Merge shallow for packages, but allow one deeper layer of attributes sets.
+
+Type: `[Attrs] -> Attrs`
+
+Usage:
+
+```nix
+merge-shallow-packages [
+	{
+		inherit (pkgs) vim;
+		namespace.first = 1;
+	}
+	{
+		inherit (unstable) vim;
+		namespace.second = 2;
+	}
+]
+```
+
+Result:
+
+```nix
+{
+	vim = {/* the vim package from the last entry */};
+	namespace = {
+		first = 1;
+		second = 2;
+	};
+}
+```
+
 ### `lib.snowfall.system`
 
 #### `lib.snowfall.system.is-darwin`
@@ -1207,7 +1240,7 @@ Result:
 
 Utilities for working with channel overlays.
 
-#### `lib.snowfall.overlay.create-overlays`
+#### `lib.snowfall.overlay.create-overlays-builder`
 
 Create a flake-utils-plus overlays builder.
 
@@ -1216,13 +1249,42 @@ Type: `Attrs -> Attrs -> [(a -> b -> c)]`
 Usage:
 
 ```nix
-create-overlays { src = ./my-overlays; overlay-package-namespace = "my-packages"; }
+create-overlays-builder { src = ./my-overlays; overlay-package-namespace = "my-packages"; extra-overlays = []; }
 ```
 
 Result:
 
 ```nix
 (channels: [ ... ])
+```
+
+#### `lib.snowfall.overlay.create-overlays`
+
+Create overlays to be used for flake outputs.
+
+Type: `Attrs -> Attrs`
+
+Usage:
+
+```nix
+create-overlays {
+	src = ./my-overlays;
+	packages-src = ./my-packages;
+	overlay-package-namespace = "my-namespace";
+	extra-overlays = {
+		my-example = final: prev: {};
+	};
+}
+```
+
+Result:
+
+```nix
+{
+	default = final: prev: {};
+	my-example = final: prev: {};
+	some-overlay = final: prev: {};
+}
 ```
 
 ### `lib.snowfall.template`

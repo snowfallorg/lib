@@ -1,26 +1,5 @@
 {
   "nodes": {
-    "darwin": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1661882940,
-        "narHash": "sha256-4LaVFnV22WrOA0aolqqk9dXrM8crikcrLQt29G18F7M=",
-        "owner": "lnl7",
-        "repo": "nix-darwin",
-        "rev": "80cec5115aae74accc4ccfb9f84306d7863f0632",
-        "type": "github"
-      },
-      "original": {
-        "owner": "lnl7",
-        "ref": "master",
-        "repo": "nix-darwin",
-        "type": "github"
-      }
-    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -70,49 +49,13 @@
         "type": "github"
       }
     },
-    "nixlib": {
-      "locked": {
-        "lastModified": 1636849918,
-        "narHash": "sha256-nzUK6dPcTmNVrgTAC1EOybSMsrcx+QrVPyqRdyKLkjA=",
-        "owner": "nix-community",
-        "repo": "nixpkgs.lib",
-        "rev": "28a5b0557f14124608db68d3ee1f77e9329e9dd5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "nixpkgs.lib",
-        "type": "github"
-      }
-    },
-    "nixos-generators": {
-      "inputs": {
-        "nixlib": "nixlib",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1660727616,
-        "narHash": "sha256-zYTIvdPMYMx/EYqXODAwIIU30RiEHqNHdgarIHuEYZc=",
-        "owner": "nix-community",
-        "repo": "nixos-generators",
-        "rev": "adccd191a0e83039d537e021f19495b7bad546a1",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "nixos-generators",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1662316000,
-        "narHash": "sha256-NkJHCVi6sj1+QqqXaozSJ0K23ANmvsnDmeC/6WXo+wI=",
+        "lastModified": 1665216225,
+        "narHash": "sha256-SUuvJXGEXhmyaGJlDlptbc9I2Wai9tUx83QYIqvipfE=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "50c62eeda9df340ff6b83a0e2343a447af04237c",
+        "rev": "1a9935bf90e0f4225756f99e772f06d5fea9edb6",
         "type": "github"
       },
       "original": {
@@ -124,10 +67,8 @@
     },
     "root": {
       "inputs": {
-        "darwin": "darwin",
         "flake-compat": "flake-compat",
         "flake-utils-plus": "flake-utils-plus",
-        "nixos-generators": "nixos-generators",
         "nixpkgs": "nixpkgs"
       }
     }

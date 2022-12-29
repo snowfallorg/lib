@@ -27,6 +27,7 @@ in
           drv = pkgs.callPackage package {
             inherit channels;
             lib = snowfall-lib.internal.system-lib;
+            inputs = snowfall-lib.flake.without-src user-inputs;
           };
         };
         packages-metadata = builtins.map create-package-metadata user-packages;

@@ -38,7 +38,7 @@ cd config
 2. Create a new flake with one of the templates from [@snowfallorg/templates](https://github.com/snowfallorg/templates).
 
 | Name      | Description                                       |
-|-----------|---------------------------------------------------|
+| --------- | ------------------------------------------------- |
 | `system`  | A NixOS system and modules ready to modify.       |
 | `package` | A Nix Flake that exports packages and an overlay. |
 | `module`  | A Nix Flake that exports NixOS modules.           |
@@ -114,7 +114,7 @@ inputs.snowfall-lib.mkFlake {
 };
 ```
 
-See [`lib.mkFlake`](#lib.mkflake) for information on how to configure your flake's outputs.
+See [`lib.mkFlake`](#libmkflake) for information on how to configure your flake's outputs.
 
 ## `lib`
 
@@ -150,7 +150,7 @@ Snowfall Lib has opinions about how a flake's files are laid out. This lets
 the structure that `lib` expects to find at the root of your flake.
 
 ```
-flake-root/ 
+flake-root/
 │
 │ Your Nix flake.
 ├─ flake.nix
@@ -161,7 +161,7 @@ flake-root/
 │  │ A Nix function called with `inputs`, `snowfall-inputs`, and `lib`.
 │  │ The function should return an attribute set to merge with `lib`.
 │  ├─ default.nix
-│  │  
+│  │
 │  │ Any (nestable) directory name.
 │  └─ **/
 │     │
@@ -701,8 +701,11 @@ Result:
 File system utilities.
 
 #### `lib.snowfall.fs.is-file-kind`
+
 #### `lib.snowfall.fs.is-symlink-kind`
+
 #### `lib.snowfall.fs.is-directory-kind`
+
 #### `lib.snowfall.fs.is-unknown-kind`
 
 Matchers for file kinds. These are often used with `readDir`.
@@ -1066,6 +1069,24 @@ Result:
 false
 ```
 
+#### `lib.snowfall.system.is-virtual`
+
+Check whether a named system is virtual.
+
+Type: `String -> Bool`
+
+Usage:
+
+```nix
+is-linux "x86_64-iso"
+```
+
+Result:
+
+```nix
+true
+```
+
 #### `lib.snowfall.system.get-virtual-system-type`
 
 Get the virtual system type of a system target.
@@ -1175,7 +1196,7 @@ Result:
 ```
 
 #### `lib.snowfall.system.create-systems`
- 
+
 Create all available systems.
 
 Type: `Attrs -> Attrs`

@@ -32,6 +32,13 @@ in
     #   result: false
     is-linux = hasInfix "linux";
 
+    # Check whether a named system is virtual.
+    # Type: String -> Bool
+    # Usage: is-virtual "x86_64-iso"
+    #   result: true
+    is-virtual = target:
+      (get-virtual-system-type target) != "";
+
     # Get the virtual system type of a system target.
     # Type: String -> String
     # Usage: get-virtual-system-type "x86_64-iso"
@@ -161,8 +168,9 @@ in
         modules = [ path ] ++ modules;
 
         specialArgs = specialArgs // {
-          inherit system name systems lib;
+          inherit target system name systems lib;
 
+          virtual = (get-virtual-system-type target) != "";
           inputs = snowfall-lib.flake.without-src user-inputs;
         };
       };

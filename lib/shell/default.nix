@@ -25,7 +25,9 @@ in
           {
             name = builtins.unsafeDiscardStringContext (snowfall-lib.path.get-parent-directory shell);
             drv = channels.nixpkgs.callPackage shell {
+              inherit channels;
               lib = snowfall-lib.internal.system-lib;
+              inputs = snowfall-lib.flake.without-src user-inputs;
             };
           };
         shells-metadata = builtins.map create-shell-metadata user-shells;

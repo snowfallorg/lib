@@ -118,7 +118,7 @@ in
             overlays
           else
             overlays // {
-              "nixpkgs/${name}" = overlay;
+              ${name} = overlay;
             }
         );
 
@@ -151,7 +151,7 @@ in
           in
           package-overlays //
           {
-            "nixpkgs/${name}" = overlay;
+            "package/${name}" = overlay;
           };
 
         package-overlays =

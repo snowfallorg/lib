@@ -66,7 +66,7 @@ library instance with `mkLib`.
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -247,7 +247,7 @@ packages, overlays, and shells specified by the [Flake Structure](#flake-structu
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -279,7 +279,7 @@ You can apply overlays and modules from your flake's inputs with the following o
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -338,7 +338,7 @@ on `pkgs` and consumers of your flake can use the generated `<your-flake>.overla
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -391,7 +391,7 @@ mapping the `default` package or shell to the name of the one you want.
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -437,7 +437,7 @@ include `darwin` and/or `nixos-generators` as inputs.
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";

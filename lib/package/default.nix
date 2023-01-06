@@ -4,6 +4,7 @@
 }:
 
 let
+  inherit (core-inputs.flake-utils-plus.lib) filterPackages;
   inherit (core-inputs.nixpkgs.lib) assertMsg foldl;
 
   user-packages-root = snowfall-lib.fs.get-file "packages";
@@ -48,6 +49,6 @@ in
         overrides-without-default = builtins.removeAttrs overrides [ "default" ];
         packages = packages-without-default // default-package // overrides-without-default;
       in
-      packages;
+      filterPackages pkgs.system packages;
   };
 }

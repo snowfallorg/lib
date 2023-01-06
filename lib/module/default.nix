@@ -28,7 +28,7 @@ in
         modules-metadata = builtins.map create-module-metadata user-modules;
         merge-modules = modules: metadata:
           modules // {
-            ${metadata.name} = metadata.path;
+            ${metadata.name} = import metadata.path;
           };
         modules-without-default = foldl merge-modules { } modules-metadata;
         default-module =

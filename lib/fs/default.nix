@@ -27,6 +27,12 @@ in
     #   result: "/user-source/systems"
     get-file = path: "${user-inputs.src}/${path}";
 
+    # Get a file path relative to the user's snowfall directory.
+    # Type: Path -> Path
+    # Usage: get-snowfall-file "systems"
+    #   result: "/user-source/snowfall-dir/systems"
+    get-snowfall-file = path: "${user-inputs.snowfall.root or user-inputs.src}/${path}";
+
     # Get a file path relative to the this flake.
     # Type: Path -> Path
     # Usage: get-file "systems"
@@ -41,7 +47,7 @@ in
       if pathExists path then
         readDir path
       else
-        {};
+        { };
 
     # Get directories at a given path.
     # Type: Path -> [Path]
@@ -52,7 +58,7 @@ in
         entries = safe-read-directory path;
         filtered-entries = filterAttrs (name: kind: is-directory-kind kind) entries;
       in
-        mapAttrsToList (name: kind: "${path}/${name}") filtered-entries;
+      mapAttrsToList (name: kind: "${path}/${name}") filtered-entries;
 
     # Get files at a given path.
     # Type: Path -> [Path]
@@ -63,7 +69,7 @@ in
         entries = safe-read-directory path;
         filtered-entries = filterAttrs (name: kind: is-file-kind kind) entries;
       in
-        mapAttrsToList (name: kind: "${path}/${name}") filtered-entries;
+      mapAttrsToList (name: kind: "${path}/${name}") filtered-entries;
 
     # Get files at a given path, traversing any directories within.
     # Type: Path -> [Path]
@@ -79,7 +85,8 @@ in
         map-file = name: kind:
           let
             path' = "${path}/${name}";
-          in if is-directory-kind kind then
+          in
+          if is-directory-kind kind then
             get-files-recursive path'
           else
             path';
@@ -122,8 +129,8 @@ in
     #   result: [ "./something/some-directory/default.nix" ]
     get-default-nix-files-recursive = path:
       builtins.filter
-      (name: builtins.baseNameOf name == "default.nix")
-      (get-files-recursive path);
+        (name: builtins.baseNameOf name == "default.nix")
+        (get-files-recursive path);
 
     # Get nix files at a given path not named "default.nix".
     # Type: Path -> [Path]
@@ -144,10 +151,10 @@ in
     #   result: [ "./something/some-directory/a.nix" ]
     get-non-default-nix-files-recursive = path:
       builtins.filter
-      (name:
-        (snowfall-lib.path.has-file-extension "nix" name)
-        && (builtins.baseNameOf name != "default.nix")
-      )
-      (get-files-recursive path);
+        (name:
+          (snowfall-lib.path.has-file-extension "nix" name)
+          && (builtins.baseNameOf name != "default.nix")
+        )
+        (get-files-recursive path);
   };
 }

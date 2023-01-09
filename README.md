@@ -81,6 +81,10 @@ library instance with `mkLib`.
 				# your flake.
 				inherit inputs;
 				src = ./.;
+
+				# You can optionally place your Snowfall-related files in another
+				# directory.
+				snowfall.root = ./nix;
 			};
 		in
 		# We'll cover what to do here next.
@@ -100,6 +104,10 @@ let
 	lib = inputs.snowfall-lib.mkLib {
 		inherit inputs;
 		src = ./.;
+
+		# You can optionally place your Snowfall-related files in another
+		# directory.
+		snowfall.root = ./nix;
 	};
 in lib.mkFlake {
 }
@@ -150,7 +158,10 @@ Snowfall Lib has opinions about how a flake's files are laid out. This lets
 the structure that `lib` expects to find at the root of your flake.
 
 ```
-flake-root/
+snowfall-root/
+│ The Snowfall root defaults to "src", but can be changed by setting "snowfall.root".
+│ This is useful if you want to add a flake to a project, but don't want to clutter the
+│ root of the repository with directories.
 │
 │ Your Nix flake.
 ├─ flake.nix
@@ -383,7 +394,7 @@ on `pkgs` and consumers of your flake can use the generated `<your-flake>.overla
 
 Snowfall Lib will create packages and shells based on your `packages/` and `shells`
 directories. However, it is common to additionally map one of those packages or shells
-to be their respective default. This can be achieved by using `outputs-builder` and
+to be their respective default. This can be achieved by setting an `alias` and
 mapping the `default` package or shell to the name of the one you want.
 
 ```nix
@@ -411,15 +422,21 @@ mapping the `default` package or shell to the name of the one you want.
 			};
 		in
 			lib.mkFlake {
-				# You can also pass through external packages or dynamically create new ones
-				# in addition to the ones that `lib` will create from your `packages/` directory.
-				outputs-builder = channels: {
+				alias = {
 					packages = {
 						default = "my-package";
 					};
 
-					devShells = {
+					shells = {
 						default = "my-shell";
+					};
+
+					modules = {
+						default = "my-module";
+					};
+
+					templates = {
+						default = "my-template";
 					};
 				};
 			};
@@ -742,6 +759,24 @@ Result:
 "/user-source/systems"
 ```
 
+#### `lib.snowfall.fs.get-snowfall-file`
+
+Get a file path relative to the user's snowfall directory.
+
+Type: `Path -> Path`
+
+Usage:
+
+```nix
+get-snowfall-file "systems"
+```
+
+Result:
+
+```nix
+"/user-source/snowfall-dir/systems"
+```
+
 #### `lib.snowfall.fs.internal-get-file`
 
 Get a file relative to the Snowfall Lib flake. You probably shouldn't use this!
@@ -938,6 +973,28 @@ Result:
 
 ```nix
 [ "./something/some-directory/a.nix" ]
+```
+
+### `lib.snowfall.module`
+
+Utilities for working with NixOS modules.
+
+#### `lib.snowfall.module.create-modules`
+
+Create flake output modules.
+
+Type: `Attrs -> Attrs`
+
+Usage:
+
+```nix
+create-modules { src = ./my-modules; overrides = { inherit another-module; }; alias = { default = "another-module" }; }
+```
+
+Result:
+
+```nix
+{ another-module = ...; my-module = ...; default = ...; }
 ```
 
 ### `lib.snowfall.attrs`
@@ -1226,7 +1283,7 @@ Type: `Attrs -> Attrs`
 Usage:
 
 ```nix
-create-packages { inherit channels; src = ./my-packages; overrides = { inherit another-package; default = "my-package"; }; }
+create-packages { inherit channels; src = ./my-packages; overrides = { inherit another-package; }; alias = { default = "another-package"; }; }
 ```
 
 Result:
@@ -1248,7 +1305,7 @@ Type: `Attrs -> Attrs`
 Usage:
 
 ```nix
-create-shells { inherit channels; src = ./my-shells; overrides = { inherit another-shell; default = "my-shell"; }; }
+create-shells { inherit channels; src = ./my-shells; overrides = { inherit another-shell; }; alias = { default = "another-shell"; }; }
 ```
 
 Result:
@@ -1321,7 +1378,7 @@ Type: `Attrs -> Attrs`
 Usage:
 
 ```nix
-create-templates { src = ./my-templates; overrides = { inherit another-template; default = "my-template"; }; }
+create-templates { src = ./my-templates; overrides = { inherit another-template; }; alias = { default = "another-template"; }; }
 ```
 
 Result:

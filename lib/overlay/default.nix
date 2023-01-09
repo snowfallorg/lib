@@ -6,8 +6,8 @@
 let
   inherit (core-inputs.nixpkgs.lib) assertMsg foldl concatStringsSep;
 
-  user-overlays-root = snowfall-lib.fs.get-file "overlays";
-  user-packages-root = snowfall-lib.fs.get-file "packages";
+  user-overlays-root = snowfall-lib.fs.get-snowfall-file "overlays";
+  user-packages-root = snowfall-lib.fs.get-snowfall-file "packages";
 in
 {
   overlay = {

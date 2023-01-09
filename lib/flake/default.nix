@@ -46,6 +46,7 @@ rec {
           "channels-config"
           "templates"
           "overlay-package-namespace"
+          "alias"
         ];
 
     # Transform an attribute set of inputs into an attribute set where
@@ -70,13 +71,16 @@ rec {
   mkFlake = full-flake-options:
     let
       custom-flake-options = flake.without-snowfall-options full-flake-options;
+      alias = full-flake-options.alias or { };
       systems = snowfall-lib.system.create-systems (full-flake-options.systems or { });
       hosts = snowfall-lib.attrs.merge-shallow [ (full-flake-options.systems.hosts or { }) systems ];
       templates = snowfall-lib.template.create-templates {
         overrides = (full-flake-options.templates or { });
+        alias = alias.templates or { };
       };
       modules = snowfall-lib.module.create-modules {
         overrides = (full-flake-options.modules or { });
+        alias = alias.modules or { };
       };
       overlays = snowfall-lib.overlay.create-overlays {
         overlay-package-namespace = full-flake-options.overlay-package-namespace or null;
@@ -93,10 +97,12 @@ rec {
           packages = snowfall-lib.package.create-packages {
             inherit channels;
             overrides = (full-flake-options.packages or { }) // (user-outputs.packages or { });
+            alias = alias.packages or { };
           };
           shells = snowfall-lib.shell.create-shells {
             inherit channels;
             overrides = (full-flake-options.shells or { }) // (user-outputs.devShells or { });
+            alias = alias.shells or { };
           };
 
           outputs = {

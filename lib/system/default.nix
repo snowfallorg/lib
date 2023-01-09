@@ -9,8 +9,8 @@ let
 
   virtual-systems = import ./virtual-systems.nix;
 
-  user-systems-root = snowfall-lib.fs.get-file "systems";
-  user-modules-root = snowfall-lib.fs.get-file "modules";
+  user-systems-root = snowfall-lib.fs.get-snowfall-file "systems";
+  user-modules-root = snowfall-lib.fs.get-snowfall-file "modules";
 
   get-inferred-system-name = path:
     if snowfall-lib.path.has-file-extension "nix" path then

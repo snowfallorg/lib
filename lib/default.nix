@@ -8,7 +8,7 @@ user-options:
 let
   user-inputs = user-options.inputs // { src = user-options.src; };
 
-  inherit (core-inputs.nixpkgs.lib) assertMsg fix filterAttrs mergeAttrs fold recursiveUpdate;
+  inherit (core-inputs.nixpkgs.lib) assertMsg fix filterAttrs mergeAttrs fold recursiveUpdate callPackageWith;
 
   # Recursively merge a list of attribute sets.
   # Type: [Attrs] -> Attrs
@@ -87,10 +87,10 @@ let
       attrs = {
         inherit (user-options) inputs;
         snowfall-inputs = core-inputs;
-        lib = merge-shallow [ base-lib user-lib ];
+        lib = merge-shallow [ base-lib { internal = user-lib; } ];
       };
       libs = builtins.map
-        (path: import path attrs)
+        (path: callPackageWith attrs path { })
         user-lib-modules;
     in
     merge-deep libs
@@ -104,6 +104,6 @@ let
   user-inputs-has-self = builtins.elem "self" (builtins.attrNames user-inputs);
   user-inputs-has-src = builtins.elem "src" (builtins.attrNames user-inputs);
 in
- assert (assertMsg (user-inputs-has-self) "Missing attribute `self` for mkLib.");
- assert (assertMsg (user-inputs-has-src) "Missing attribute `src` for mkLib.");
- lib
+assert (assertMsg (user-inputs-has-self) "Missing attribute `self` for mkLib.");
+assert (assertMsg (user-inputs-has-src) "Missing attribute `src` for mkLib.");
+lib

@@ -45,7 +45,7 @@ rec {
           "hosts"
           "channels-config"
           "templates"
-          "overlay-package-namespace"
+          "package-namespace"
           "alias"
         ];
 
@@ -65,11 +65,11 @@ rec {
           builtins.mapAttrs (name: input: input.lib) attrs-with-libs;
       in
       libs;
-
   };
 
   mkFlake = full-flake-options:
     let
+      package-namespace = full-flake-options.package-namespace or "internal";
       custom-flake-options = flake.without-snowfall-options full-flake-options;
       alias = full-flake-options.alias or { };
       systems = snowfall-lib.system.create-systems (full-flake-options.systems or { });
@@ -83,7 +83,7 @@ rec {
         alias = alias.modules or { };
       };
       overlays = snowfall-lib.overlay.create-overlays {
-        overlay-package-namespace = full-flake-options.overlay-package-namespace or null;
+        inherit package-namespace;
         extra-overlays = full-flake-options.extra-exported-overlays or { };
       };
 
@@ -95,7 +95,7 @@ rec {
               or (const { });
           user-outputs = user-outputs-builder channels;
           packages = snowfall-lib.package.create-packages {
-            inherit channels;
+            inherit channels package-namespace;
             overrides = (full-flake-options.packages or { }) // (user-outputs.packages or { });
             alias = alias.packages or { };
           };
@@ -125,7 +125,7 @@ rec {
         channelsConfig = full-flake-options.channels-config or { };
 
         channels.nixpkgs.overlaysBuilder = snowfall-lib.overlay.create-overlays-builder {
-          overlay-package-namespace = full-flake-options.overlay-package-namespace or null;
+          package-namespace = full-flake-options.package-namespace or null;
           extra-overlays = full-flake-options.overlays or [ ];
         };
 

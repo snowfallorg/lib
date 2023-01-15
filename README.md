@@ -377,7 +377,7 @@ on `pkgs` and consumers of your flake can use the generated `<your-flake>.overla
 				# Optionally place all packages under a namespace when used in an overlay.
 				# Instead of accessing packages with `pkgs.<name>`, your internal packages
 				# will be available at `pkgs.<namespace>.<name>`.
-				overlay-package-namespace = "my-namespace";
+				package-namespace = "my-namespace";
 
 				# You can also pass through external packages or dynamically create new ones
 				# in addition to the ones that `lib` will create from your `packages/` directory.
@@ -1327,7 +1327,7 @@ Type: `Attrs -> Attrs -> [(a -> b -> c)]`
 Usage:
 
 ```nix
-create-overlays-builder { src = ./my-overlays; overlay-package-namespace = "my-packages"; extra-overlays = []; }
+create-overlays-builder { src = ./my-overlays; package-namespace = "my-packages"; extra-overlays = []; }
 ```
 
 Result:
@@ -1348,7 +1348,7 @@ Usage:
 create-overlays {
 	src = ./my-overlays;
 	packages-src = ./my-packages;
-	overlay-package-namespace = "my-namespace";
+	package-namespace = "my-namespace";
 	extra-overlays = {
 		my-example = final: prev: {};
 	};

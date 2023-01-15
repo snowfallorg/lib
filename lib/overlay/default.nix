@@ -13,11 +13,11 @@ in
   overlay = {
     # Create a flake-utils-plus overlays builder.
     # Type: Attrs -> Attrs -> [(a -> b -> c)]
-    # Usage: create-overlays { src = ./my-overlays; overlay-package-namespace = "my-packages"; }
+    # Usage: create-overlays { src = ./my-overlays; package-namespace = "my-packages"; }
     #   result: (channels: [ ... ])
     create-overlays-builder =
       { src ? user-overlays-root
-      , overlay-package-namespace ? null
+      , package-namespace ? "internal"
       , extra-overlays ? [ ]
       }: channels:
       let
@@ -29,18 +29,14 @@ in
               pkgs = final;
               channels = channels;
             };
-            user-packages-without-default = builtins.removeAttrs
-              (user-packages) [ "default" ];
           in
-          if overlay-package-namespace == null then
-            user-packages-without-default
-          else
-            {
-              ${overlay-package-namespace} =
-                (prev.${overlay-package-namespace} or { })
-                // user-packages-without-default;
-            };
-        overlays = [ user-packages-overlay ] ++ extra-overlays ++ (builtins.map create-overlay user-overlays);
+          {
+            ${package-namespace} =
+              (prev.${package-namespace} or { })
+              // user-packages;
+          };
+        overlays =
+          [ user-packages-overlay ] ++ extra-overlays ++ (builtins.map create-overlay user-overlays);
       in
       overlays;
 
@@ -48,12 +44,12 @@ in
     # Adapted from flake-utils-plus:
     # https://github.com/gytis-ivaskevicius/flake-utils-plus/blob/2bf0f91643c2e5ae38c1b26893ac2927ac9bd82a/lib/exportOverlays.nix
     # Type: Attrs -> Attrs
-    # Usage: create-overlays { src = ./my-overlays; packages-src = ./my-packages; overlay-package-namespace = "my-namespace"; extra-overlays = {}; }
+    # Usage: create-overlays { src = ./my-overlays; packages-src = ./my-packages; package-namespace = "my-namespace"; extra-overlays = {}; }
     #   result: { default = final: prev: ...; some-overlay = final: prev: ...; }
     create-overlays =
       { src ? user-overlays-root
       , packages-src ? user-packages-root
-      , overlay-package-namespace ? null
+      , package-namespace ? null
       , extra-overlays ? { }
       }:
       let
@@ -75,12 +71,12 @@ in
               channels = channel-systems.${prev.system};
             };
           in
-          if overlay-package-namespace == null then
+          if package-namespace == null then
             user-packages
           else
             {
-              ${overlay-package-namespace} =
-                (prev.${overlay-package-namespace} or { })
+              ${package-namespace} =
+                (prev.${package-namespace} or { })
                 // user-packages;
             };
 
@@ -93,13 +89,13 @@ in
                 user-overlay = import file (user-inputs // { inherit channels; });
                 packages = user-packages-overlay final prev;
                 prev-with-packages =
-                  if overlay-package-namespace == null then
+                  if package-namespace == null then
                     prev // packages
                   else
                     prev // {
-                      ${overlay-package-namespace} =
-                        (prev.${overlay-package-namespace} or { })
-                        // packages.${overlay-package-namespace};
+                      ${package-namespace} =
+                        (prev.${package-namespace} or { })
+                        // packages.${package-namespace};
                     };
                 user-overlay-packages =
                   user-overlay
@@ -140,12 +136,12 @@ in
                   channels = channel-systems.${prev.system};
                 };
               in
-              if overlay-package-namespace == null then
+              if package-namespace == null then
                 { ${name} = packages.${name}; }
               else
                 {
-                  ${overlay-package-namespace} =
-                    (prev.${overlay-package-namespace} or { })
+                  ${package-namespace} =
+                    (prev.${package-namespace} or { })
                     // { ${name} = packages.${name}; };
                 };
           in

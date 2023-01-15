@@ -4,7 +4,7 @@
 }:
 
 let
-  inherit (core-inputs.nixpkgs.lib) assertMsg fix fold filterAttrs;
+  inherit (core-inputs.nixpkgs.lib) assertMsg fix fold filterAttrs callPackageWith;
 
   core-inputs-libs = snowfall-lib.flake.get-libs (snowfall-lib.flake.without-self core-inputs);
   user-inputs-libs = snowfall-lib.flake.get-libs (snowfall-lib.flake.without-self user-inputs);
@@ -27,10 +27,13 @@ let
       attrs = {
         inputs = snowfall-lib.flake.without-snowfall-inputs user-inputs;
         snowfall-inputs = core-inputs;
-        lib = snowfall-lib.attrs.merge-shallow [ base-lib user-lib ];
+        lib = snowfall-lib.attrs.merge-shallow [
+          base-lib
+          { internal = user-lib; }
+        ];
       };
       libs = builtins.map
-        (path: import path attrs)
+        (path: callPackageWith attrs path { })
         user-lib-modules;
     in
     snowfall-lib.attrs.merge-deep libs
@@ -38,7 +41,7 @@ let
 
   system-lib = snowfall-lib.attrs.merge-shallow [
     base-lib
-    user-lib
+    { internal = user-lib; }
   ];
 in
 {

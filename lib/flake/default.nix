@@ -138,7 +138,6 @@ rec {
       flake-outputs =
         flake-utils-plus-outputs // {
           inherit overlays;
-          overlay = overlays.default;
         };
     in
     flake-outputs;

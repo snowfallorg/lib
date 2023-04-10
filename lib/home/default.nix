@@ -1,7 +1,7 @@
 { core-inputs, user-inputs, snowfall-lib }:
 
 let
-  inherit (core-inputs.nixpkgs.lib) assertMsg foldl head tail concatMap optionalAttrs mkIf filterAttrs mapAttrs' mkMerge mapAttrsToList;
+  inherit (core-inputs.nixpkgs.lib) assertMsg foldl head tail concatMap optionalAttrs mkIf filterAttrs mapAttrs' mkMerge mapAttrsToList optionals mkDefault;
 
   user-homes-root = snowfall-lib.fs.get-snowfall-file "homes";
   user-modules-root = snowfall-lib.fs.get-snowfall-file "modules";
@@ -157,7 +157,6 @@ in
                 inherit system target format virtual systems host;
 
                 lib = home-lib;
-                # pkgs = user-inputs.self.pkgs.${system}.nixpkgs;
 
                 inputs = snowfall-lib.flake.without-src user-inputs;
               };
@@ -179,30 +178,43 @@ in
             let
               host-matches = created-user.specialArgs.host == host;
 
-              wrapped-user-module = home-args:
+              # @NOTE(jakehamilton): We *must* specify named attributes here in order
+              # for home-manager to provide them.
+              wrapped-user-module = home-args@{ pkgs, lib, ... }:
                 let
-                  modified-args = args // {
-                    inherit (created-user.specialArgs) user;
-                  };
-                  user-module-result = (import user-module (home-args // modified-args)) // {
-                    _file = user-module;
-                  };
+                  user-module-result = import user-module home-args;
+                  user-imports = 
+                    if user-module-result ? imports then
+                      user-module-result.imports
+                    else
+                      [ ];
+                  user-config =
+                    if user-module-result ? config then
+                      user-module-result.config
+                    else
+                      builtins.removeAttrs user-module-result [ "imports" "options" "_file" ];
                 in
-                user-module-result;
+                {
+                  _file = builtins.toString user-module;
+                  imports = user-imports;
+
+                  config = mkMerge [
+                    user-config
+                    ({
+                      snowfallorg.user.name = mkDefault created-user.specialArgs.user;
+                    })
+                  ];
+                };
             in
             {
               _file = "virtual:snowfallorg/home/user/${name}";
 
-              imports =
-                if snowfall-lib.system.is-darwin created-user.system then
-                  [ ../../modules/darwin/home/default.nix ]
-                else
-                  [ ../../modules/nixos/home/default.nix ];
-
               config = mkIf host-matches {
                 home-manager = {
-                  users.${user-name} = wrapped-user-module args;
-                  sharedModules = other-modules;
+                  users.${user-name} = wrapped-user-module;
+                  sharedModules = other-modules ++ [
+                    ../../modules/home/user/default.nix
+                  ];
                 };
               };
             }

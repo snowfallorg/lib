@@ -38,5 +38,9 @@
     in
     {
       inherit mkLib mkFlake;
+
+      homeModules = {
+        user = ./user/default.nix;
+      };
     };
 }

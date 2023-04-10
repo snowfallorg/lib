@@ -16,7 +16,7 @@ in
     # Usage: create-modules { src = ./my-modules; overrides = { inherit another-module; }; alias = { default = "another-module" }; }
     #   result: { another-module = ...; my-module = ...; default = ...; }
     create-modules =
-      { src ? user-modules-root
+      { src ? "${user-modules-root}/nixos"
       , overrides ? { }
       , alias ? { }
       }:
@@ -36,7 +36,9 @@ in
         modules-metadata = builtins.map create-module-metadata user-modules;
         merge-modules = modules: metadata:
           modules // {
-            ${metadata.name} = args:
+            # @NOTE(jakehamilton): home-manager *requires* modules to specify named arguments or it will not
+            # pass values in. For this reason we must specify things like `pkgs` as a named attribute.
+            ${metadata.name} = args@{ pkgs, ... }:
               let
                 system = args.system or args.pkgs.system;
                 target = args.target or system;

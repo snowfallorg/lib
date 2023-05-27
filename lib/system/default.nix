@@ -100,10 +100,13 @@ in
         darwin-system-builder = args:
           assert assertMsg (user-inputs ? darwin) "In order to create virtual systems, you must include `darwin` as a flake input.";
           user-inputs.darwin.lib.darwinSystem
-            ((builtins.removeAttrs args [ "system" ]) // {
+            ((builtins.removeAttrs args [ "system" "modules" ]) // {
               specialArgs = args.specialArgs // {
                 format = "darwin";
               };
+              modules = args.modules ++ [
+                ../../modules/darwin/home/default.nix
+              ];
             });
         linux-system-builder = args:
           core-inputs.nixpkgs.lib.nixosSystem

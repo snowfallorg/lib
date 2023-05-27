@@ -1,7 +1,7 @@
 { core-inputs, user-inputs, snowfall-lib }:
 
 let
-  inherit (core-inputs.nixpkgs.lib) assertMsg foldl head tail concatMap optionalAttrs mkIf filterAttrs mapAttrs' mkMerge mapAttrsToList optionals mkDefault;
+  inherit (core-inputs.nixpkgs.lib) assertMsg foldl head tail concatMap optionalAttrs mkIf filterAttrs mapAttrs' mkMerge mapAttrsToList optionals mkDefault mkAliasDefinitions;
 
   user-homes-root = snowfall-lib.fs.get-snowfall-file "homes";
   user-modules-root = snowfall-lib.fs.get-snowfall-file "modules";
@@ -57,7 +57,10 @@ in
 
         output = "homeConfigurations";
 
-        modules = [ path ] ++ modules;
+        modules = [
+          path
+          ../../modules/home/user/default.nix
+        ] ++ modules;
 
         specialArgs = {
           inherit name;
@@ -80,6 +83,9 @@ in
                 (module-args: import ./nix-registry-module.nix (module-args // {
                   inherit user-inputs core-inputs;
                 }))
+                ({
+                  snowfallorg.user.name = mkDefault user-metadata.user;
+                })
               ];
 
               extraSpecialArgs = specialArgs // args.specialArgs;
@@ -180,7 +186,7 @@ in
 
               # @NOTE(jakehamilton): We *must* specify named attributes here in order
               # for home-manager to provide them.
-              wrapped-user-module = home-args@{ pkgs, lib, ... }:
+              wrapped-user-module = home-args@{ pkgs, lib, osConfig ? {}, ... }:
                 let
                   user-module-result = import user-module home-args;
                   user-imports = 
@@ -193,6 +199,7 @@ in
                       user-module-result.config
                     else
                       builtins.removeAttrs user-module-result [ "imports" "options" "_file" ];
+                  user = created-user.specialArgs.user;
                 in
                 {
                   _file = builtins.toString user-module;
@@ -201,8 +208,9 @@ in
                   config = mkMerge [
                     user-config
                     ({
-                      snowfallorg.user.name = mkDefault created-user.specialArgs.user;
+                      snowfallorg.user.name = mkDefault user;
                     })
+                    (osConfig.snowfallorg.home.resolvedHomes.${user} or {})
                   ];
                 };
             in
@@ -212,9 +220,7 @@ in
               config = mkIf host-matches {
                 home-manager = {
                   users.${user-name} = wrapped-user-module;
-                  sharedModules = other-modules ++ [
-                    ../../modules/home/user/default.nix
-                  ];
+                  sharedModules = other-modules;
                 };
               };
             }

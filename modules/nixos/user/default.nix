@@ -32,7 +32,6 @@ let
       ${name} = user.home.config;
     };
 in
-(builtins.trace "hello")
 {
   options.snowfallorg = {
     user = mkOption {

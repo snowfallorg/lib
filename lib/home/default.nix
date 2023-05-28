@@ -226,7 +226,7 @@ in
                     ({
                       snowfallorg.user.name = mkDefault user;
                     })
-                    (osConfig.snowfallorg.home.resolved-homes.${user} or { })
+                    (osConfig.snowfallorg.resolved-homes.${user} or { })
                   ];
                 };
             in

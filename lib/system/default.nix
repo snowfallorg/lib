@@ -96,6 +96,9 @@ in
               specialArgs = args.specialArgs // {
                 format = virtual-system-type;
               };
+              modules = args.modules ++ [
+                ../../modules/nixos/user/default.nix
+              ];
             });
         darwin-system-builder = args:
           assert assertMsg (user-inputs ? darwin) "In order to create virtual systems, you must include `darwin` as a flake input.";
@@ -105,7 +108,7 @@ in
                 format = "darwin";
               };
               modules = args.modules ++ [
-                ../../modules/darwin/home/default.nix
+                ../../modules/darwin/user/default.nix
               ];
             });
         linux-system-builder = args:
@@ -114,6 +117,9 @@ in
               specialArgs = args.specialArgs // {
                 format = "linux";
               };
+              modules = args.modules ++ [
+                ../../modules/nixos/user/default.nix
+              ];
             });
       in
       if virtual-system-type != "" then

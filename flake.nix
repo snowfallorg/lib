@@ -39,8 +39,16 @@
     {
       inherit mkLib mkFlake;
 
+      nixosModules = {
+        user = ./modules/nixos/user/default.nix;
+      };
+
+      darwinModules = {
+        user = ./modules/darwin/user/default.nix;
+      };
+
       homeModules = {
-        user = ./user/default.nix;
+        user = ./modules/home/user/default.nix;
       };
     };
 }

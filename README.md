@@ -37,12 +37,13 @@ cd config
 
 2. Create a new flake with one of the templates from [@snowfallorg/templates](https://github.com/snowfallorg/templates).
 
-| Name      | Description                                       |
-| --------- | ------------------------------------------------- |
-| `system`  | A NixOS system and modules ready to modify.       |
-| `package` | A Nix Flake that exports packages and an overlay. |
-| `module`  | A Nix Flake that exports NixOS modules.           |
-| `lib`     | A Nix Flake that exports a custom `lib`           |
+| Name      | Description                                          |
+| --------- | ---------------------------------------------------- |
+| `system`  | A NixOS system and modules ready to modify.          |
+| `package` | A Nix Flake that exports packages and an overlay.    |
+| `module`  | A Nix Flake that exports NixOS modules.              |
+| `lib`     | A Nix Flake that exports a custom `lib`              |
+| `empty`   | A basic Nix Flake for you to customize from scratch. |
 
 ```bash
 # For example, to use the system template.
@@ -195,12 +196,20 @@ snowfall-root/
 │
 ├─ modules/ (optional modules)
 │  │
-│  │ Any (nestable) directory name. The name of the directory will be the
-│  │ name of the module.
-│  └─ **/
+│  │ A directory named after the `platform` type that will be used for modules within.
+│  │
+│  │ Supported platforms are:
+│  │ - nixos
+│  │ - darwin
+│  │ - home
+│  └─ <platform>/
 │     │
-│     │ A NixOS module.
-│     └─ default.nix
+│     │ Any (nestable) directory name. The name of the directory will be the
+│     │ name of the module.
+│     └─ **/
+│        │
+│        │ A NixOS module.
+│        └─ default.nix
 │
 ├─ overlays/ (optional overlays)
 │  │
@@ -245,6 +254,37 @@ snowfall-root/
 │     └─ <system-name>/
 │        │
 │        │ A NixOS module for your system's configuration.
+│        └─ default.nix
+│
+├─ homes/ (optional homes configurations)
+│  │
+│  │ A directory named after the `home` type that will be used for all homes within.
+│  │
+│  │ The architecture is any supported architecture of NixPkgs, for example:
+│  │  - x86_64
+│  │  - aarch64
+│  │  - i686
+│  │
+│  │ The format is any supported NixPkgs format *or* a format provided by either nix-darwin
+│  │ or nixos-generators. However, in order to build systems with nix-darwin or nixos-generators,
+│  │ you must add `darwin` and `nixos-generators` inputs to your flake respectively. Here
+│  │ are some example formats:
+│  │  - linux
+│  │  - darwin
+│  │  - iso
+│  │  - install-iso
+│  │  - do
+│  │  - vmware
+│  │
+│  │ With the architecture and format together (joined by a hyphen), you get the name of the
+│  │ directory for the home type.
+│  └─ <architecture>-<format>/
+│     │
+│     │ A directory that contains a single home's configuration. The directory name
+│     │ will be the name of the home.
+│     └─ <home-name>/
+│        │
+│        │ A NixOS module for your home's configuration.
 │        └─ default.nix
 ```
 
@@ -525,6 +565,48 @@ type. See the following table for a list of supported formats from NixOS Generat
 | vm-bootloader        | Same as vm, but uses a real bootloader instead of netbooting                             |
 | vm-nogui             | Same as vm, but without a GUI                                                            |
 | vmware               | VMWare image (VMDK)                                                                      |
+
+#### Home Manager
+
+Snowfall Lib supports configuring [Home Manager](https://github.com/nix-community/home-manager)
+for both standalone use and for use as a module with NixOS or nix-darwin. To use this feature,
+your flake must include `home-manager` as an input.
+
+```nix
+{
+	description = "My Flake";
+
+	inputs = {
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
+
+		snowfall-lib = {
+			url = "github:snowfallorg/lib";
+			inputs.nixpkgs.follows = "nixpkgs";
+		};
+
+		# In order to use Home Manager.
+		home-manager = {
+			url = "github:nix-community/home-manager";
+			inputs.nixpkgs.follows = "nixpkgs";
+		};
+	};
+
+	outputs = inputs:
+		# This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
+		# directly unless you explicitly need a feature of `lib`.
+		let
+			lib = inputs.snowfall-lib.mkLib {
+				# You must pass in both your flake's inputs and the root directory of
+				# your flake.
+				inherit inputs;
+				src = ./.;
+			};
+		in
+			# No additional configuration is required to use this feature, you only
+			# have to add home-manager to your flake inputs.
+			lib.mkFlake { };
+}
+```
 
 ### `lib.snowfall.flake`
 
@@ -1162,6 +1244,24 @@ Result:
 "iso"
 ```
 
+#### `lib.snowfall.system.get-inferred-system-name`
+
+Get the name of a system based on its file path.
+
+Type: `Path -> String`
+
+Usage:
+
+```nix
+get-inferred-system-name "/systems/my-system/default.nix"
+```
+
+Result:
+
+```nix
+"my-system"
+```
+
 #### `lib.snowfall.system.get-target-systems-metadata`
 
 Get structured data about all systems for a given target.
@@ -1261,13 +1361,105 @@ Type: `Attrs -> Attrs`
 Usage:
 
 ```nix
-create-systems { hosts.my-host.specialArgs.x = true; modules = [ my-shared-module ]; }
+create-systems { hosts.my-host.specialArgs.x = true; modules.nixos = [ my-shared-module ]; }
 ```
 
 Result:
 
 ```nix
 { my-host = <flake-utils-plus-system-configuration>; }
+```
+
+### `lib.snowfall.home`
+
+#### `lib.snowfall.home.split-user-and-host`
+
+Get the user and host from a combined string.
+
+Type: `String -> Attrs`
+
+Usage:
+
+```nix
+split-user-and-host "myuser@myhost"
+```
+
+Result:
+
+```nix
+{ user = "myuser"; host = "myhost"; }
+```
+
+#### `lib.snowfall.home.create-home`
+
+Create a home.
+
+Type: `Attrs -> Attrs`
+
+Usage:
+
+```nix
+create-home { path = ./homes/my-home; }
+```
+
+Result:
+
+```nix
+<flake-utils-plus-home-configuration>
+```
+
+#### `lib.snowfall.home.create-homes`
+
+Create all available homes.
+
+Type: `Attrs -> Attrs`
+
+Usage:
+
+```nix
+create-homes { users."my-user@my-system".specialArgs.x = true; modules = [ my-shared-module ]; }
+```
+
+Result:
+
+```nix
+{ "my-user@my-system" = <flake-utils-plus-home-configuration>; }
+```
+
+#### `lib.snowfall.home.get-target-homes-metadata`
+
+Get structured data about all homes for a given target.
+
+Type: `String -> [Attrs]`
+
+Usage:
+
+```nix
+get-target-homes-metadata ./homes
+```
+
+Result:
+
+```nix
+[ { system = "x86_64-linux"; name = "my-home"; path = "/homes/x86_64-linux/my-home";} ]
+```
+
+#### `lib.snowfall.home.create-home-system-modules`
+
+Create system modules for home-manager integration.
+
+Type: `Attrs -> [Module]`
+
+Usage:
+
+```nix
+create-home-system-modules { users."my-user@my-system".specialArgs.x = true; modules = [ my-shared-module ]; }
+```
+
+Result:
+
+```nix
+[Module]
 ```
 
 ### `lib.snowfall.package`

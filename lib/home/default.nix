@@ -18,6 +18,10 @@ in
         hm = snowfall-lib.internal.system-lib.home-manager.hm;
       });
 
+    # Get the user and host from a combined string.
+    # Type: String -> Attrs
+    # Usage: split-user-and-host "myuser@myhost"
+    #   result: { user = "myuser"; host = "myhost"; }
     split-user-and-host = target:
       let
         raw-name-parts = builtins.split "@" target;
@@ -35,6 +39,10 @@ in
       };
 
 
+    # Create a home.
+    # Type: Attrs -> Attrs
+    # Usage: create-home { path = ./homes/my-home; }
+    #   result: <flake-utils-plus-home-configuration>
     create-home =
       { path
       , name ? builtins.unsafeDiscardStringContext (snowfall-lib.system.get-inferred-system-name path)
@@ -92,6 +100,10 @@ in
             });
       };
 
+    # Get structured data about all homes for a given target.
+    # Type: String -> [Attrs]
+    # Usage: get-target-homes-metadata ./homes
+    #   result: [ { system = "x86_64-linux"; name = "my-home"; path = "/homes/x86_64-linux/my-home";} ]
     get-target-homes-metadata = target:
       let
         homes = snowfall-lib.fs.get-directories target;
@@ -141,6 +153,10 @@ in
       in
       created-homes;
 
+    # Create system modules for home-manager integration.
+    # Type: Attrs -> [Module]
+    # Usage: create-home-system-modules { users."my-user@my-system".specialArgs.x = true; modules = [ my-shared-module ]; }
+    #   result: [Module]
     create-home-system-modules = users:
       let
         created-users = create-homes users;
@@ -186,10 +202,10 @@ in
 
               # @NOTE(jakehamilton): We *must* specify named attributes here in order
               # for home-manager to provide them.
-              wrapped-user-module = home-args@{ pkgs, lib, osConfig ? {}, ... }:
+              wrapped-user-module = home-args@{ pkgs, lib, osConfig ? { }, ... }:
                 let
                   user-module-result = import user-module home-args;
-                  user-imports = 
+                  user-imports =
                     if user-module-result ? imports then
                       user-module-result.imports
                     else
@@ -210,7 +226,7 @@ in
                     ({
                       snowfallorg.user.name = mkDefault user;
                     })
-                    (osConfig.snowfallorg.home.resolvedHomes.${user} or {})
+                    (osConfig.snowfallorg.home.resolved-homes.${user} or { })
                   ];
                 };
             in
@@ -218,6 +234,9 @@ in
               _file = "virtual:snowfallorg/home/user/${name}";
 
               config = mkIf host-matches {
+                # Initialize user information.
+                snowfallorg.user.${user-name} = { };
+
                 home-manager = {
                   users.${user-name} = wrapped-user-module;
                   sharedModules = other-modules;

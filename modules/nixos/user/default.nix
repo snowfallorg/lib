@@ -15,12 +15,12 @@ let
       ${name} = {
         isNormalUser = mkDefault true;
 
-        name = mkDefault cfg.name;
+        name = mkDefault name;
 
         home = mkDefault user.home.path;
         group = mkDefault "users";
 
-        extraGroups = (builtins.trace user.admin) optional user.admin "wheel";
+        extraGroups = optional user.admin "wheel";
       };
     });
 

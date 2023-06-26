@@ -9,6 +9,8 @@ let
   # when being used in standalone home-manager. To remedy this, we have to refer to the arguments set directly.
   os-user-home = inputs.osConfig.users.users.${cfg.name}.home or null;
 
+  has-user-name = (cfg.user.name or null) != null;
+
   default-home-directory =
     if (os-user-home != null) then
       os-user-home
@@ -43,8 +45,8 @@ in
 
   config = mkIf cfg.user.enable {
     home = {
-      username = mkIf (cfg.user.name or null != null) (mkDefault cfg.user.name);
-      homeDirectory = mkIf (cfg.user.name or null != null) (mkDefault cfg.user.home.directory);
+      username = mkIf has-user-name (mkDefault cfg.user.name);
+      homeDirectory = mkIf has-user-name (mkDefault cfg.user.home.directory);
     };
   };
 }

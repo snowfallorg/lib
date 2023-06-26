@@ -1,7 +1,26 @@
 { core-inputs, user-inputs, snowfall-lib }:
 
 let
-  inherit (core-inputs.nixpkgs.lib) assertMsg foldl head tail concatMap optionalAttrs mkIf filterAttrs mapAttrs' mkMerge mapAttrsToList optionals mkDefault mkAliasDefinitions;
+  inherit (core-inputs.nixpkgs.lib)
+    assertMsg
+    foldl
+    head
+    tail
+    concatMap
+    optionalAttrs
+    optional
+    mkIf
+    filterAttrs
+    mapAttrs'
+    mkMerge
+    mapAttrsToList
+    optionals
+    mkDefault
+    traceSeqN
+    mkAliasDefinitions
+    mkAliasAndWrapDefinitions
+    mkOption
+    types;
 
   user-homes-root = snowfall-lib.fs.get-snowfall-file "homes";
   user-modules-root = snowfall-lib.fs.get-snowfall-file "modules";
@@ -136,7 +155,11 @@ in
           src = "${user-modules-root}/home";
         };
 
-        user-home-modules-list = builtins.attrValues user-home-modules;
+        user-home-modules-list = mapAttrsToList
+          (module-path: module: args@{ pkgs, ... }: (module args) // {
+            _file = "${user-homes-root}/${module-path}/default.nix";
+          })
+          user-home-modules;
 
         create-home' = home-metadata:
           let
@@ -160,6 +183,30 @@ in
     create-home-system-modules = users:
       let
         created-users = create-homes users;
+        user-home-modules = snowfall-lib.module.create-modules {
+          src = "${user-modules-root}/home";
+        };
+
+        shared-modules = mapAttrsToList
+          (module-path: module: {
+            _file = "${user-modules-root}/home/${module-path}/default.nix";
+
+            config = {
+              home-manager.sharedModules = [ module ];
+            };
+          })
+          user-home-modules;
+
+        snowfall-user-home-module = {
+          _file = "virtual:snowfallorg/modules/home/user/default.nix";
+
+          config = {
+            home-manager.sharedModules = [
+              ../../modules/home/user/default.nix
+            ];
+          };
+        };
+
         extra-special-args-module =
           args@{ config
           , pkgs
@@ -184,15 +231,17 @@ in
               };
             };
           };
+
         system-modules = builtins.map
           (name:
             let
               created-user = created-users.${name};
               user-module = head created-user.modules;
-              other-modules = tail created-user.modules;
+              other-modules = users.users.${name}.modules or [ ];
               user-name = created-user.specialArgs.user;
             in
             args@{ config
+            , options
             , pkgs
             , host ? ""
             , ...
@@ -200,52 +249,56 @@ in
             let
               host-matches = created-user.specialArgs.host == host;
 
-              # @NOTE(jakehamilton): We *must* specify named attributes here in order
-              # for home-manager to provide them.
-              wrapped-user-module = home-args@{ pkgs, lib, osConfig ? { }, ... }:
-                let
-                  user-module-result = import user-module home-args;
-                  user-imports =
-                    if user-module-result ? imports then
-                      user-module-result.imports
-                    else
-                      [ ];
-                  user-config =
-                    if user-module-result ? config then
-                      user-module-result.config
-                    else
-                      builtins.removeAttrs user-module-result [ "imports" "options" "_file" ];
-                  user = created-user.specialArgs.user;
-                in
-                {
-                  _file = builtins.toString user-module;
-                  imports = user-imports;
+              # @NOTE(jakehamilton): To conform to the config structure of home-manager, we have to
+              # remap the options coming from `snowfallorg.user.<name>.home.config` since `mkAliasDefinitions`
+              # does not let us target options within a submodule.
+              wrap-user-options = user-option:
+                if (user-option ? "_type") && user-option._type == "merge" then
+                  user-option // {
+                    contents = builtins.map
+                      (merge-entry:
+                        merge-entry.${user-name}.home.config or { }
+                      )
+                      user-option.contents;
+                  }
+                else
+                  (builtins.trace ''
+                    =============
+                    Snowfall Lib:
+                    Option value for `snowfallorg.user.${user-name}` was not detected to be merged.
 
-                  config = mkMerge [
-                    user-config
-                    ({
-                      snowfallorg.user.name = mkDefault user;
-                    })
-                    (osConfig.snowfallorg.resolved-homes.${user} or { })
-                  ];
-                };
+                    Please report the issue on GitHub with a link to your configuration so we can debug the problem:
+                      https://github.com/snowfallorg/lib/issues/new
+                    =============
+                  '')
+                    user-option;
             in
             {
               _file = "virtual:snowfallorg/home/user/${name}";
 
               config = mkIf host-matches {
                 # Initialize user information.
-                snowfallorg.user.${user-name} = { };
+                snowfallorg.user.${user-name}.home.config = {
+                  snowfallorg.user.name = mkDefault user-name;
+                };
 
                 home-manager = {
-                  users.${user-name} = wrapped-user-module;
-                  sharedModules = other-modules;
+                  users.${user-name} = mkAliasAndWrapDefinitions wrap-user-options options.snowfallorg.user;
+
+                  # sharedModules = other-modules ++ optional config.snowfallorg.user.${user-name}.home.enable wrapped-user-module;
+                  sharedModules = other-modules ++ optional config.snowfallorg.user.${user-name}.home.enable user-module;
                 };
               };
             }
           )
           (builtins.attrNames created-users);
       in
-      [ extra-special-args-module ] ++ system-modules;
+      [
+        extra-special-args-module
+        snowfall-user-home-module
+      ]
+      ++ (users.modules or [ ])
+      ++ shared-modules
+      ++ system-modules;
   };
 }

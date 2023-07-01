@@ -16,7 +16,6 @@ let
     mapAttrsToList
     optionals
     mkDefault
-    traceSeqN
     mkAliasDefinitions
     mkAliasAndWrapDefinitions
     mkOption
@@ -279,7 +278,10 @@ in
               config = mkIf host-matches {
                 # Initialize user information.
                 snowfallorg.user.${user-name}.home.config = {
-                  snowfallorg.user.name = mkDefault user-name;
+                  snowfallorg.user = {
+                    enable = true;
+                    name = mkDefault user-name;
+                  };
                 };
 
                 home-manager = {

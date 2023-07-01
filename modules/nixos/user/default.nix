@@ -45,6 +45,11 @@ in
           };
 
           home = {
+            enable = mkOption {
+              type = types.bool;
+              default = true;
+            };
+
             path = mkOption {
               type = types.str;
               default = "/home/${name}";

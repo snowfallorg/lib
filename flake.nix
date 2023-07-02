@@ -27,10 +27,10 @@
       # A convenience wrapper to create the library and then call `lib.mkFlake`.
       # Usage: mkFlake { inherit inputs; src = ./.; ... }
       #   result: <flake-outputs>
-      mkFlake = flake-and-lib-options@{ inputs, src, ... }:
+      mkFlake = flake-and-lib-options@{ inputs, src, snowfall ? { }, ... }:
         let
           lib = mkLib {
-            inherit inputs src;
+            inherit inputs src snowfall;
           };
           flake-options = builtins.removeAttrs flake-and-lib-options [ "inputs" "src" ];
         in

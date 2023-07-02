@@ -48,6 +48,7 @@ rec {
           "templates"
           "package-namespace"
           "alias"
+          "snowfall"
         ];
 
     # Transform an attribute set of inputs into an attribute set where

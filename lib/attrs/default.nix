@@ -1,6 +1,7 @@
 { core-inputs
 , user-inputs
 , snowfall-lib
+, snowfall-config
 }:
 
 let

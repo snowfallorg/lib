@@ -1,4 +1,8 @@
-{ core-inputs, user-inputs, snowfall-lib }:
+{ core-inputs
+, user-inputs
+, snowfall-lib
+, snowfall-config
+}:
 
 let
   inherit (core-inputs.nixpkgs.lib)

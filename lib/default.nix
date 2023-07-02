@@ -6,6 +6,11 @@ core-inputs:
 user-options:
 
 let
+  raw-snowfall-config = user-options.snowfall or { };
+  snowfall-config = raw-snowfall-config // {
+    root = raw-snowfall-config.root or user-options.src;
+  };
+
   user-inputs = user-options.inputs // { src = user-options.src; };
 
   inherit (core-inputs.nixpkgs.lib) assertMsg fix filterAttrs mergeAttrs fold recursiveUpdate callPackageWith;
@@ -60,7 +65,7 @@ let
   snowfall-lib = fix (snowfall-lib:
     let
       attrs = {
-        inherit snowfall-lib core-inputs user-inputs;
+        inherit snowfall-lib snowfall-config core-inputs user-inputs;
       };
       libs = builtins.map
         (dir: import "${snowfall-lib-root}/${dir}" attrs)

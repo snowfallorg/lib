@@ -49,7 +49,7 @@ in
     ## Apply an argument to a function.
     ## Example Usage:
     ## ```nix
-    ## call (x: x + 1) 0
+    ## apply 0 (x: x + 1)
     ## ```
     ## Result:
     ## ```nix

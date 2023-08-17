@@ -171,7 +171,7 @@ rec {
         channelsConfig = full-flake-options.channels-config or { };
 
         channels.nixpkgs.overlaysBuilder = snowfall-lib.overlay.create-overlays-builder {
-          package-namespace = full-flake-options.package-namespace or null;
+          inherit package-namespace;
           extra-overlays = full-flake-options.overlays or [ ];
         };
 

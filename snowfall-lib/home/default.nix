@@ -31,14 +31,21 @@ in
 {
   home = rec {
     # Modules in home-manager expect `hm` to be available directly on `lib` itself.
-    home-lib = snowfall-lib.internal.system-lib.extend (final: prev:
-      # @NOTE(jakehamilton): This order is important, this library's extend and other utilities must write
-      # _over_ the original `system-lib`.
-      snowfall-lib.internal.system-lib
-      // prev
-      // {
-        hm = snowfall-lib.internal.system-lib.home-manager.hm;
-      });
+    home-lib =
+      # @NOTE(jakehamilton): This prevents an error during evaluation if the input does
+      # not exist.
+      if user-inputs ? home-manager then
+        snowfall-lib.internal.system-lib.extend
+          (final: prev:
+            # @NOTE(jakehamilton): This order is important, this library's extend and other utilities must write
+            # _over_ the original `system-lib`.
+            snowfall-lib.internal.system-lib
+            // prev
+            // {
+              hm = snowfall-lib.internal.system-lib.home-manager.hm;
+            })
+      else
+        { };
 
     # Get the user and host from a combined string.
     # Type: String -> Attrs

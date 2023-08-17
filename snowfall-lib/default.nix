@@ -8,7 +8,13 @@ user-options:
 let
   raw-snowfall-config = user-options.snowfall or { };
   snowfall-config = raw-snowfall-config // {
+    src = user-options.src;
     root = raw-snowfall-config.root or user-options.src;
+    namespace = raw-snowfall-config.namespace or "internal";
+    meta = {
+      name = raw-snowfall-config.meta.name or null;
+      title = raw-snowfall-config.meta.title or null;
+    };
   };
 
   user-inputs = user-options.inputs // { src = user-options.src; };
@@ -53,7 +59,9 @@ let
   core-inputs-libs = get-libs (without-self core-inputs);
   user-inputs-libs = get-libs (without-self user-inputs);
 
-  snowfall-lib-root = "${core-inputs.src}/lib";
+  # @NOTE(jakehamilton): This root is different to accomodate the creation
+  # of a fake user-lib in order to run documentation on this flake.
+  snowfall-lib-root = "${core-inputs.src}/snowfall-lib";
   snowfall-lib-dirs =
     let
       files = builtins.readDir snowfall-lib-root;

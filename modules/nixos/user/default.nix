@@ -1,9 +1,11 @@
-{ pkgs, lib, options, config, inputs, ... }:
+args@{ pkgs, lib, options, config, ... }:
 
 let
   inherit (lib) types mkOption mkDefault foldl optionalAttrs optional;
 
   cfg = config.snowfallorg;
+
+  inputs = args.inputs or { };
 
   user-names = builtins.attrNames cfg.user;
 
@@ -58,29 +60,32 @@ in
             config = mkOption {
               # HM-compatible options taken from:
               # https://github.com/nix-community/home-manager/blob/0ee5ab611dc1fbb5180bd7d88d2aeb7841a4d179/nixos/common.nix#L14
+              # @NOTE(jakehamilton): This has been adapted to support documentation generation without
+              # having home-manager options fully declared.
               type = types.submoduleWith {
                 specialArgs = {
                   osConfig = config;
-                  modulesPath = "${inputs.home-manager}/modules";
-                } // config.home-manager.extraSpecialArgs;
+                  modulesPath = "${inputs.home-manager or "/"}/modules";
+                } // (config.home-manager.extraSpecialArgs or { });
                 modules = [
-                  ({ lib, modulesPath, ... }: {
-                    imports = import "${modulesPath}/modules.nix" {
-                      inherit pkgs lib;
-                      useNixpkgsModule = !config.home-manager.useGlobalPkgs;
-                    };
+                  ({ lib, modulesPath, ... }:
+                    if inputs ? home-manager then {
+                      imports = import "${modulesPath}/modules.nix" {
+                        inherit pkgs lib;
+                        useNixpkgsModule = !(config.home-manager.useGlobalPkgs or false);
+                      };
 
-                    config = {
-                      submoduleSupport.enable = true;
-                      submoduleSupport.externalPackageInstall = cfg.useUserPackages;
+                      config = {
+                        submoduleSupport.enable = true;
+                        submoduleSupport.externalPackageInstall = cfg.useUserPackages;
 
-                      home.username = config.users.users.${name}.name;
-                      home.homeDirectory = config.users.users.${name}.home;
+                        home.username = config.users.users.${name}.name;
+                        home.homeDirectory = config.users.users.${name}.home;
 
-                      nix.package = config.nix.package;
-                    };
-                  })
-                ] ++ config.home-manager.sharedModules;
+                        nix.package = config.nix.package;
+                      };
+                    } else { })
+                ] ++ (config.home-manager.sharedModules or [ ]);
               };
             };
           };

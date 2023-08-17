@@ -40,7 +40,17 @@ in
           in
           {
             name = builtins.unsafeDiscardStringContext (snowfall-lib.path.get-parent-directory package);
-            drv = callPackageWith extra-inputs package { };
+            drv =
+              let
+                pkg = callPackageWith extra-inputs package { };
+              in
+              pkg // {
+                meta = (pkg.meta or { }) // {
+                  snowfall = {
+                    path = package;
+                  };
+                };
+              };
           };
         packages-metadata = builtins.map create-package-metadata user-packages;
         merge-packages = packages: metadata:

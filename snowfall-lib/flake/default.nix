@@ -71,7 +71,7 @@ rec {
 
   mkFlake = full-flake-options:
     let
-      package-namespace = full-flake-options.package-namespace or "internal";
+      package-namespace = full-flake-options.package-namespace or snowfall-config.namespace or "internal";
       custom-flake-options = flake.without-snowfall-options full-flake-options;
       alias = full-flake-options.alias or { };
       homes = snowfall-lib.home.create-homes (full-flake-options.homes or { });
@@ -149,6 +149,12 @@ rec {
         };
 
         outputsBuilder = outputs-builder;
+
+        _snowfall = {
+          config = snowfall-config;
+          raw-config = full-flake-options.snowfall or { };
+          user-lib = snowfall-lib.internal.user-lib;
+        };
       };
 
       flake-utils-plus-outputs =

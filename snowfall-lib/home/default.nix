@@ -31,19 +31,32 @@ in
 {
   home = rec {
     # Modules in home-manager expect `hm` to be available directly on `lib` itself.
-    home-lib = snowfall-lib.internal.system-lib.extend (final: prev:
-      # @NOTE(jakehamilton): This order is important, this library's extend and other utilities must write
-      # _over_ the original `system-lib`.
-      snowfall-lib.internal.system-lib
-      // prev
-      // {
-        hm = snowfall-lib.internal.system-lib.home-manager.hm;
-      });
+    home-lib =
+      # @NOTE(jakehamilton): This prevents an error during evaluation if the input does
+      # not exist.
+      if user-inputs ? home-manager then
+        snowfall-lib.internal.system-lib.extend
+          (final: prev:
+            # @NOTE(jakehamilton): This order is important, this library's extend and other utilities must write
+            # _over_ the original `system-lib`.
+            snowfall-lib.internal.system-lib
+            // prev
+            // {
+              hm = snowfall-lib.internal.system-lib.home-manager.hm;
+            })
+      else
+        { };
 
-    # Get the user and host from a combined string.
-    # Type: String -> Attrs
-    # Usage: split-user-and-host "myuser@myhost"
-    #   result: { user = "myuser"; host = "myhost"; }
+    ## Get the user and host from a combined string.
+    ## Example Usage:
+    ## ```nix
+    ## split-user-and-host "myuser@myhost"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { user = "myuser"; host = "myhost"; }
+    ## ```
+    #@ String -> Attrs
     split-user-and-host = target:
       let
         raw-name-parts = builtins.split "@" target;
@@ -61,10 +74,16 @@ in
       };
 
 
-    # Create a home.
-    # Type: Attrs -> Attrs
-    # Usage: create-home { path = ./homes/my-home; }
-    #   result: <flake-utils-plus-home-configuration>
+    ## Create a home.
+    ## Example Usage:
+    ## ```nix
+    ## create-home { path = ./homes/my-home; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## <flake-utils-plus-home-configuration>
+    ## ```
+    #@ Attrs -> Attrs
     create-home =
       { path
       , name ? builtins.unsafeDiscardStringContext (snowfall-lib.system.get-inferred-system-name path)
@@ -122,10 +141,16 @@ in
             });
       };
 
-    # Get structured data about all homes for a given target.
-    # Type: String -> [Attrs]
-    # Usage: get-target-homes-metadata ./homes
-    #   result: [ { system = "x86_64-linux"; name = "my-home"; path = "/homes/x86_64-linux/my-home";} ]
+    ## Get structured data about all homes for a given target.
+    ## Example Usage:
+    ## ```nix
+    ## get-target-homes-metadata ./homes
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ { system = "x86_64-linux"; name = "my-home"; path = "/homes/x86_64-linux/my-home";} ]
+    ## ```
+    #@ String -> [Attrs]
     get-target-homes-metadata = target:
       let
         homes = snowfall-lib.fs.get-directories target;
@@ -145,10 +170,16 @@ in
       in
       home-configurations;
 
-    # Create all available homes.
-    # Type: Attrs -> Attrs
-    # Usage: create-homes { users."my-user@my-system".specialArgs.x = true; modules = [ my-shared-module ]; }
-    #   result: { "my-user@my-system" = <flake-utils-plus-home-configuration>; }
+    ## Create all available homes.
+    ## Example Usage:
+    ## ```nix
+    ## create-homes { users."my-user@my-system".specialArgs.x = true; modules = [ my-shared-module ]; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { "my-user@my-system" = <flake-utils-plus-home-configuration>; }
+    ## ```
+    #@ Attrs -> Attrs
     create-homes = homes:
       let
         targets = snowfall-lib.fs.get-directories user-homes-root;
@@ -179,10 +210,16 @@ in
       in
       created-homes;
 
-    # Create system modules for home-manager integration.
-    # Type: Attrs -> [Module]
-    # Usage: create-home-system-modules { users."my-user@my-system".specialArgs.x = true; modules = [ my-shared-module ]; }
-    #   result: [Module]
+    ## Create system modules for home-manager integration.
+    ## Example Usage:
+    ## ```nix
+    ## create-home-system-modules { users."my-user@my-system".specialArgs.x = true; modules = [ my-shared-module ]; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [Module]
+    ## ```
+    #@ Attrs -> [Module]
     create-home-system-modules = users:
       let
         created-users = create-homes users;

@@ -12,10 +12,16 @@ let
 in
 {
   package = rec {
-    # Create flake output packages.
-    # Type: Attrs -> Attrs
-    # Usage: create-packages { inherit channels; src = ./my-packages; overrides = { inherit another-package; }; alias.default = "another-package"; }
-    #   result: { another-package = ...; my-package = ...; default = ...; }
+    ## Create flake output packages.
+    ## Example Usage:
+    ## ```nix
+    ## create-packages { inherit channels; src = ./my-packages; overrides = { inherit another-package; }; alias.default = "another-package"; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { another-package = ...; my-package = ...; default = ...; }
+    ## ```
+    #@ Attrs -> Attrs
     create-packages =
       { channels
       , src ? user-packages-root
@@ -40,7 +46,17 @@ in
           in
           {
             name = builtins.unsafeDiscardStringContext (snowfall-lib.path.get-parent-directory package);
-            drv = callPackageWith extra-inputs package { };
+            drv =
+              let
+                pkg = callPackageWith extra-inputs package { };
+              in
+              pkg // {
+                meta = (pkg.meta or { }) // {
+                  snowfall = {
+                    path = package;
+                  };
+                };
+              };
           };
         packages-metadata = builtins.map create-package-metadata user-packages;
         merge-packages = packages: metadata:

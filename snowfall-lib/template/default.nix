@@ -12,10 +12,18 @@ let
 in
 {
   template = {
-    # Create flake templates.
-    # Type: Attrs -> Attrs
-    # Usage: create-templates { src = ./my-templates; overrides = { inherit another-template; }; alias = { default = "another-template"; }; }
-    #   result: { another-template = ...; my-template = ...; default = ...; }
+    ## Create flake templates.
+    ##
+    ## Example Usage:
+    ## ```nix
+    ## create-templates { src = ./my-templates; overrides = { inherit another-template; }; alias = { default = "another-template"; }; }
+    ## ```
+    ##
+    ## Result:
+    ## ```nix
+    ## { another-template = ...; my-template = ...; default = ...; }
+    ## ```
+    #@ Attrs -> Attrs
     create-templates =
       { src ? user-templates-root
       , overrides ? { }

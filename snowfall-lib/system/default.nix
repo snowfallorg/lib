@@ -15,39 +15,69 @@ let
 in
 {
   system = rec {
-    # Get the name of a system based on its file path.
-    # Type: Path -> String
-    # Usage: get-inferred-system-name "/systems/my-system/default.nix"
-    #   result: "my-system"
+    ## Get the name of a system based on its file path.
+    ## Example Usage:
+    ## ```nix
+    ## get-inferred-system-name "/systems/my-system/default.nix"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## "my-system"
+    ## ```
+    #@ Path -> String
     get-inferred-system-name = path:
       if snowfall-lib.path.has-file-extension "nix" path then
         snowfall-lib.path.get-parent-directory path
       else
         baseNameOf path;
 
-    # Check whether a named system is macOS.
-    # Type: String -> Bool
-    # Usage: is-darwin "x86_64-linux"
-    #   result: false
+    ## Check whether a named system is macOS.
+    ## Example Usage:
+    ## ```nix
+    ## is-darwin "x86_64-linux"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## false
+    ## ```
+    #@ String -> Bool
     is-darwin = hasInfix "darwin";
 
-    # Check whether a named system is Linux.
-    # Type: String -> Bool
-    # Usage: is-linux "x86_64-linux"
-    #   result: false
+    ## Check whether a named system is Linux.
+    ## Example Usage:
+    ## ```nix
+    ## is-linux "x86_64-linux"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## false
+    ## ```
+    #@ String -> Bool
     is-linux = hasInfix "linux";
 
-    # Check whether a named system is virtual.
-    # Type: String -> Bool
-    # Usage: is-virtual "x86_64-iso"
-    #   result: true
+    ## Check whether a named system is virtual.
+    ## Example Usage:
+    ## ```nix
+    ## is-virtual "x86_64-iso"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## true
+    ## ```
+    #@ String -> Bool
     is-virtual = target:
       (get-virtual-system-type target) != "";
 
-    # Get the virtual system type of a system target.
-    # Type: String -> String
-    # Usage: get-virtual-system-type "x86_64-iso"
-    #   result: "iso"
+    ## Get the virtual system type of a system target.
+    ## Example Usage:
+    ## ```nix
+    ## get-virtual-system-type "x86_64-iso"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## "iso"
+    ## ```
+    #@ String -> String
     get-virtual-system-type = target:
       foldl
         (result: virtual-system:
@@ -59,10 +89,16 @@ in
         ""
         virtual-systems;
 
-    # Get structured data about all systems for a given target.
-    # Type: String -> [Attrs]
-    # Usage: get-target-systems-metadata "x86_64-linux"
-    #   result: [ { target = "x86_64-linux"; name = "my-machine"; path = "/systems/x86_64-linux/my-machine"; } ]
+    ## Get structured data about all systems for a given target.
+    ## Example Usage:
+    ## ```nix
+    ## get-target-systems-metadata "x86_64-linux"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ { target = "x86_64-linux"; name = "my-machine"; path = "/systems/x86_64-linux/my-machine"; } ]
+    ## ```
+    #@ String -> [Attrs]
     get-target-systems-metadata = target:
       let
         systems = snowfall-lib.fs.get-directories target;
@@ -82,10 +118,16 @@ in
       in
       system-configurations;
 
-    # Get the system builder for a given target.
-    # Type: String -> Function
-    # Usage: get-system-builder "x86_64-iso"
-    #   result: (args: <system>)
+    ## Get the system builder for a given target.
+    ## Example Usage:
+    ## ```nix
+    ## get-system-builder "x86_64-iso"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## (args: <system>)
+    ## ```
+    #@ String -> Function
     get-system-builder = target:
       let
         virtual-system-type = get-virtual-system-type target;
@@ -130,10 +172,16 @@ in
       else
         linux-system-builder;
 
-    # Get the flake output attribute for a system target.
-    # Type: String -> String
-    # Usage: get-system-output "aarch64-darwin"
-    #   result: "darwinConfigurations"
+    ## Get the flake output attribute for a system target.
+    ## Example Usage:
+    ## ```nix
+    ## get-system-output "aarch64-darwin"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## "darwinConfigurations"
+    ## ```
+    #@ String -> String
     get-system-output = target:
       let
         virtual-system-type = get-virtual-system-type target;
@@ -145,10 +193,16 @@ in
       else
         "nixosConfigurations";
 
-    # Get the resolved (non-virtual) system target.
-    # Type: String -> String
-    # Usage: get-resolved-system-target "x86_64-iso"
-    #   result: "x86_64-linux"
+    ## Get the resolved (non-virtual) system target.
+    ## Example Usage:
+    ## ```nix
+    ## get-resolved-system-target "x86_64-iso"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## "x86_64-linux"
+    ## ```
+    #@ String -> String
     get-resolved-system-target = target:
       let
         virtual-system-type = get-virtual-system-type target;
@@ -158,10 +212,16 @@ in
       else
         target;
 
-    # Create a system.
-    # Type: Attrs -> Attrs
-    # Usage: create-system { path = ./systems/my-system; }
-    #   result: <flake-utils-plus-system-configuration>
+    ## Create a system.
+    ## Example Usage:
+    ## ```nix
+    ## create-system { path = ./systems/my-system; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## <flake-utils-plus-system-configuration>
+    ## ```
+    #@ Attrs -> Attrs
     create-system =
       { target ? "x86_64-linux"
       , system ? get-resolved-system-target target
@@ -199,10 +259,16 @@ in
         };
       };
 
-    # Create all available systems.
-    # Type: Attrs -> Attrs
-    # Usage: create-systems { hosts.my-host.specialArgs.x = true; modules.nixos = [ my-shared-module ]; }
-    #   result: { my-host = <flake-utils-plus-system-configuration>; }
+    ## Create all available systems.
+    ## Example Usage:
+    ## ```nix
+    ## create-systems { hosts.my-host.specialArgs.x = true; modules.nixos = [ my-shared-module ]; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { my-host = <flake-utils-plus-system-configuration>; }
+    ## ```
+    #@ Attrs -> Attrs
     create-systems = { systems ? { }, homes ? { } }:
       let
         targets = snowfall-lib.fs.get-directories user-systems-root;

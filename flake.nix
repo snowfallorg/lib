@@ -22,7 +22,7 @@
       # `lib.flake-utils-plus.mkApp`.
       # Usage: mkLib { inherit inputs; src = ./.; }
       #   result: lib
-      mkLib = import ./lib core-inputs;
+      mkLib = import ./snowfall-lib core-inputs;
 
       # A convenience wrapper to create the library and then call `lib.mkFlake`.
       # Usage: mkFlake { inherit inputs; src = ./.; ... }
@@ -49,6 +49,37 @@
 
       homeModules = {
         user = ./modules/home/user/default.nix;
+      };
+
+      _snowfall = rec {
+
+        raw-config = config;
+
+        config = {
+          root = ./.;
+          src = ./.;
+          namespace = "snowfall";
+          lib-dir = "snowfall-lib";
+
+          meta = {
+            name = "snowfall-lib";
+            title = "Snowfall Lib";
+          };
+        };
+
+        internal-lib =
+          let
+            lib = mkLib {
+              src = ./.;
+
+              inputs = inputs // {
+                self = { };
+              };
+            };
+          in
+          builtins.removeAttrs
+            lib.snowfall
+            [ "internal" ];
       };
     };
 }

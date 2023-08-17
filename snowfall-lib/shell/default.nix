@@ -12,10 +12,16 @@ let
 in
 {
   shell = {
-    # Create flake output packages.
-    # Type: Attrs -> Attrs
-    # Usage: create-shells { inherit channels; src = ./my-shells; overrides = { inherit another-shell; }; alias = { default = "another-shell"; }; }
-    #   result: { another-shell = ...; my-shell = ...; default = ...; }
+    ## Create flake output packages.
+    ## Example Usage:
+    ## ```nix
+    ## create-shells { inherit channels; src = ./my-shells; overrides = { inherit another-shell; }; alias = { default = "another-shell"; }; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { another-shell = ...; my-shell = ...; default = ...; }
+    ## ```
+    #@ Attrs -> Attrs
     create-shells =
       { channels
       , src ? user-shells-root

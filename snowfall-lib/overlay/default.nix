@@ -12,10 +12,16 @@ let
 in
 {
   overlay = {
-    # Create a flake-utils-plus overlays builder.
-    # Type: Attrs -> Attrs -> [(a -> b -> c)]
-    # Usage: create-overlays { src = ./my-overlays; package-namespace = "my-packages"; }
-    #   result: (channels: [ ... ])
+    ## Create a flake-utils-plus overlays builder.
+    ## Example Usage:
+    ## ```nix
+    ## create-overlays { src = ./my-overlays; package-namespace = "my-packages"; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## (channels: [ ... ])
+    ## ```
+    #@ Attrs -> Attrs -> [(a -> b -> c)]
     create-overlays-builder =
       { src ? user-overlays-root
       , package-namespace ? "internal"
@@ -41,12 +47,17 @@ in
       in
       overlays;
 
-    # Create exported overlays from the user flake.
-    # Adapted from flake-utils-plus:
-    # https://github.com/gytis-ivaskevicius/flake-utils-plus/blob/2bf0f91643c2e5ae38c1b26893ac2927ac9bd82a/lib/exportOverlays.nix
-    # Type: Attrs -> Attrs
-    # Usage: create-overlays { src = ./my-overlays; packages-src = ./my-packages; package-namespace = "my-namespace"; extra-overlays = {}; }
-    #   result: { default = final: prev: ...; some-overlay = final: prev: ...; }
+    ## Create exported overlays from the user flake. Adapted [from flake-utils-plus](https://github.com/gytis-ivaskevicius/flake-utils-plus/blob/2bf0f91643c2e5ae38c1b26893ac2927ac9bd82a/lib/exportOverlays.nix).
+    ##
+    ## Example Usage:
+    ## ```nix
+    ## create-overlays { src = ./my-overlays; packages-src = ./my-packages; package-namespace = "my-namespace"; extra-overlays = {}; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { default = final: prev: ...; some-overlay = final: prev: ...; }
+    ## ```
+    #@ Attrs -> Attrs
     create-overlays =
       { src ? user-overlays-root
       , packages-src ? user-packages-root

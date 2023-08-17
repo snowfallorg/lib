@@ -133,7 +133,10 @@ in
                   inherit user-inputs core-inputs;
                 }))
                 ({
-                  snowfallorg.user.name = mkDefault user-metadata.user;
+                  snowfallorg.user = {
+                    name = mkDefault user-metadata.user;
+                    enable = mkDefault true;
+                  };
                 })
               ];
 

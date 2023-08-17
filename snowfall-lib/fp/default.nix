@@ -10,28 +10,52 @@ let
 in
 {
   fp = rec {
-    # Compose two functions.
-    # Type: (b -> c) -> (a -> b) -> a -> c
-    # Usage: compose add-two add-one
-    #   result: (x: add-two (add-one x))
+    ## Compose two functions.
+    ## Example Usage:
+    ## ```nix
+    ## compose add-two add-one
+    ## ```
+    ## Result:
+    ## ```nix
+    ## (x: add-two (add-one x))
+    ## ```
+    #@ (b -> c) -> (a -> b) -> a -> c
     compose = f: g: x: f (g x);
 
-    # Compose many functions.
-    # Type: [(x -> y)] -> a -> b
-    # Usage: compose-all [ add-two add-one ]
-    #   result: (x: add-two (add-one x))
+    ## Compose many functions.
+    ## Example Usage:
+    ## ```nix
+    ## compose-all [ add-two add-one ]
+    ## ```
+    ## Result:
+    ## ```nix
+    ## (x: add-two (add-one x))
+    ## ```
+    #@ [(x -> y)] -> a -> b
     compose-all = foldr compose id;
 
-    # Call a function with an argument.
-    # Type: (a -> b) -> a -> b
-    # Usage: call (x: x + 1) 0
-    #   result: 1
+    ## Call a function with an argument.
+    ## Example Usage:
+    ## ```nix
+    ## call (x: x + 1) 0
+    ## ```
+    ## Result:
+    ## ```nix
+    ## 1
+    ## ```
+    #@ (a -> b) -> a -> b
     call = f: x: f x;
 
-    # Apply an argument to a function.
-    # Type: a -> (a -> b) -> b
-    # Usage: call (x: x + 1) 0
-    #   result: 1
+    ## Apply an argument to a function.
+    ## Example Usage:
+    ## ```nix
+    ## call (x: x + 1) 0
+    ## ```
+    ## Result:
+    ## ```nix
+    ## 1
+    ## ```
+    #@ a -> (a -> b) -> b
     apply = flip call;
   };
 }

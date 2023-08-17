@@ -12,10 +12,16 @@ let
 in
 {
   module = {
-    # Create flake output modules.
-    # Type: Attrs -> Attrs
-    # Usage: create-modules { src = ./my-modules; overrides = { inherit another-module; }; alias = { default = "another-module" }; }
-    #   result: { another-module = ...; my-module = ...; default = ...; }
+    ## Create flake output modules.
+    ## Example Usage:
+    ## ```nix
+    ## create-modules { src = ./my-modules; overrides = { inherit another-module; }; alias = { default = "another-module" }; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { another-module = ...; my-module = ...; default = ...; }
+    ## ```
+    #@ Attrs -> Attrs
     create-modules =
       { src ? "${user-modules-root}/nixos"
       , overrides ? { }

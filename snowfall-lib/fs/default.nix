@@ -13,47 +13,83 @@ let
 in
 {
   fs = rec {
-    # Matchers for file kinds. These are often used with `readDir`.
-    # Type: String -> Bool
-    # Usage: is-file-kind "directory"
-    #   result: false
+    ## Matchers for file kinds. These are often used with `readDir`.
+    ## Example Usage:
+    ## ```nix
+    ## is-file-kind "directory"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## false
+    ## ```
+    #@ String -> Bool
     is-file-kind = kind: kind == "regular";
     is-symlink-kind = kind: kind == "symlink";
     is-directory-kind = kind: kind == "directory";
     is-unknown-kind = kind: kind == "unknown";
 
-    # Get a file path relative to the user's flake.
-    # Type: Path -> Path
-    # Usage: get-file "systems"
-    #   result: "/user-source/systems"
+    ## Get a file path relative to the user's flake.
+    ## Example Usage:
+    ## ```nix
+    ## get-file "systems"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## "/user-source/systems"
+    ## ```
+    #@ Path -> Path
     get-file = path: "${user-inputs.src}/${path}";
 
-    # Get a file path relative to the user's snowfall directory.
-    # Type: Path -> Path
-    # Usage: get-snowfall-file "systems"
-    #   result: "/user-source/snowfall-dir/systems"
+    ## Get a file path relative to the user's snowfall directory.
+    ## Example Usage:
+    ## ```nix
+    ## get-snowfall-file "systems"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## "/user-source/snowfall-dir/systems"
+    ## ```
+    #@ Path -> Path
     get-snowfall-file = path: "${snowfall-config.root}/${path}";
 
-    # Get a file path relative to the this flake.
-    # Type: Path -> Path
-    # Usage: get-file "systems"
-    #   result: "/user-source/systems"
+    ## Get a file path relative to the this flake.
+    ## Example Usage:
+    ## ```nix
+    ## get-file "systems"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## "/user-source/systems"
+    ## ```
+    #@ Path -> Path
     internal-get-file = path: "${core-inputs.src}/${path}";
 
-    # Safely read from a directory if it exists.
-    # Type: Path -> Attrs
-    # Usage: safe-read-directory ./some/path
-    #   result: { "my-file.txt" = "regular"; }
+    ## Safely read from a directory if it exists.
+    ## Example Usage:
+    ## ```nix
+    ## safe-read-directory ./some/path
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { "my-file.txt" = "regular"; }
+    ## ```
+    #@ Path -> Attrs
     safe-read-directory = path:
       if pathExists path then
         readDir path
       else
         { };
 
-    # Get directories at a given path.
-    # Type: Path -> [Path]
-    # Usage: get-directories ./something
-    #   result: [ "./something/a-directory" ]
+    ## Get directories at a given path.
+    ## Example Usage:
+    ## ```nix
+    ## get-directories ./something
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ "./something/a-directory" ]
+    ## ```
+    #@ Path -> [Path]
     get-directories = path:
       let
         entries = safe-read-directory path;
@@ -61,10 +97,16 @@ in
       in
       mapAttrsToList (name: kind: "${path}/${name}") filtered-entries;
 
-    # Get files at a given path.
-    # Type: Path -> [Path]
-    # Usage: get-files ./something
-    #   result: [ "./something/a-file" ]
+    ## Get files at a given path.
+    ## Example Usage:
+    ## ```nix
+    ## get-files ./something
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ "./something/a-file" ]
+    ## ```
+    #@ Path -> [Path]
     get-files = path:
       let
         entries = safe-read-directory path;
@@ -72,10 +114,16 @@ in
       in
       mapAttrsToList (name: kind: "${path}/${name}") filtered-entries;
 
-    # Get files at a given path, traversing any directories within.
-    # Type: Path -> [Path]
-    # Usage: get-files-recursive ./something
-    #   result: [ "./something/some-directory/a-file" ]
+    ## Get files at a given path, traversing any directories within.
+    ## Example Usage:
+    ## ```nix
+    ## get-files-recursive ./something
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ "./something/some-directory/a-file" ]
+    ## ```
+    #@ Path -> [Path]
     get-files-recursive = path:
       let
         entries = safe-read-directory path;
@@ -97,46 +145,76 @@ in
       in
       files;
 
-    # Get nix files at a given path.
-    # Type: Path -> [Path]
-    # Usage: get-nix-files "./something"
-    #   result: [ "./something/a.nix" ]
+    ## Get nix files at a given path.
+    ## Example Usage:
+    ## ```nix
+    ## get-nix-files "./something"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ "./something/a.nix" ]
+    ## ```
+    #@ Path -> [Path]
     get-nix-files = path:
       builtins.filter
         (snowfall-lib.path.has-file-extension "nix")
         (get-files path);
 
-    # Get nix files at a given path, traversing any directories within.
-    # Type: Path -> [Path]
-    # Usage: get-nix-files "./something"
-    #   result: [ "./something/a.nix" ]
+    ## Get nix files at a given path, traversing any directories within.
+    ## Example Usage:
+    ## ```nix
+    ## get-nix-files "./something"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ "./something/a.nix" ]
+    ## ```
+    #@ Path -> [Path]
     get-nix-files-recursive = path:
       builtins.filter
         (snowfall-lib.path.has-file-extension "nix")
         (get-files-recursive path);
 
-    # Get nix files at a given path named "default.nix".
-    # Type: Path -> [Path]
-    # Usage: get-default-nix-files "./something"
-    #   result: [ "./something/default.nix" ]
+    ## Get nix files at a given path named "default.nix".
+    ## Example Usage:
+    ## ```nix
+    ## get-default-nix-files "./something"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ "./something/default.nix" ]
+    ## ```
+    #@ Path -> [Path]
     get-default-nix-files = path:
       builtins.filter
         (name: builtins.baseNameOf name == "default.nix")
         (get-files path);
 
-    # Get nix files at a given path named "default.nix", traversing any directories within.
-    # Type: Path -> [Path]
-    # Usage: get-default-nix-files-recursive "./something"
-    #   result: [ "./something/some-directory/default.nix" ]
+    ## Get nix files at a given path named "default.nix", traversing any directories within.
+    ## Example Usage:
+    ## ```nix
+    ## get-default-nix-files-recursive "./something"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ "./something/some-directory/default.nix" ]
+    ## ```
+    #@ Path -> [Path]
     get-default-nix-files-recursive = path:
       builtins.filter
         (name: builtins.baseNameOf name == "default.nix")
         (get-files-recursive path);
 
-    # Get nix files at a given path not named "default.nix".
-    # Type: Path -> [Path]
-    # Usage: get-non-default-nix-files "./something"
-    #   result: [ "./something/a.nix" ]
+    ## Get nix files at a given path not named "default.nix".
+    ## Example Usage:
+    ## ```nix
+    ## get-non-default-nix-files "./something"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ "./something/a.nix" ]
+    ## ```
+    #@ Path -> [Path]
     get-non-default-nix-files = path:
       builtins.filter
         (name:
@@ -145,11 +223,16 @@ in
         )
         (get-files path);
 
-    # Get nix files at a given path not named "default.nix",
-    # traversing any directories within.
-    # Type: Path -> [Path]
-    # Usage: get-non-default-nix-files-recursive "./something"
-    #   result: [ "./something/some-directory/a.nix" ]
+    ## Get nix files at a given path not named "default.nix", traversing any directories within.
+    ## Example Usage:
+    ## ```nix
+    ## get-non-default-nix-files-recursive "./something"
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ "./something/some-directory/a.nix" ]
+    ## ```
+    #@ Path -> [Path]
     get-non-default-nix-files-recursive = path:
       builtins.filter
         (name:

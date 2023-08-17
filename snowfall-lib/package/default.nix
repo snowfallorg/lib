@@ -12,10 +12,16 @@ let
 in
 {
   package = rec {
-    # Create flake output packages.
-    # Type: Attrs -> Attrs
-    # Usage: create-packages { inherit channels; src = ./my-packages; overrides = { inherit another-package; }; alias.default = "another-package"; }
-    #   result: { another-package = ...; my-package = ...; default = ...; }
+    ## Create flake output packages.
+    ## Example Usage:
+    ## ```nix
+    ## create-packages { inherit channels; src = ./my-packages; overrides = { inherit another-package; }; alias.default = "another-package"; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { another-package = ...; my-package = ...; default = ...; }
+    ## ```
+    #@ Attrs -> Attrs
     create-packages =
       { channels
       , src ? user-packages-root

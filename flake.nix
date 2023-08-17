@@ -52,6 +52,7 @@
       };
 
       _snowfall = rec {
+
         raw-config = config;
 
         config = {
@@ -59,6 +60,11 @@
           src = ./.;
           namespace = "snowfall";
           lib-dir = "snowfall-lib";
+
+          meta = {
+            name = "snowfall-lib";
+            title = "Snowfall Lib";
+          };
         };
 
         internal-lib =

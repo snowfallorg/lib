@@ -17,29 +17,53 @@ let
 in
 {
   attrs = {
-    # Map and flatten an attribute set into a list.
-    # Type: (a -> b -> [c]) -> Attrs -> [c]
-    # Usage: map-concat-attrs-to-list (name: value: [name value]) { x = 1; y = 2; }
-    #   result: [ "x" 1 "y" 2 ]
+    ## Map and flatten an attribute set into a list.
+    ## Example Usage:
+    ## ```nix
+    ## map-concat-attrs-to-list (name: value: [name value]) { x = 1; y = 2; }
+    ## ```
+    ## Result:
+    ## ```nix
+    ## [ "x" 1 "y" 2 ]
+    ## ```
+    #@ (a -> b -> [c]) -> Attrs -> [c]
     map-concat-attrs-to-list = f: attrs:
       flatten (mapAttrsToList f attrs);
 
-    # Recursively merge a list of attribute sets.
-    # Type: [Attrs] -> Attrs
-    # Usage: merge-deep [{ x = 1; } { x = 2; }]
-    #   result: { x = 2; }
+    ## Recursively merge a list of attribute sets.
+    ## Example Usage:
+    ## ```nix
+    ## merge-deep [{ x = 1; } { x = 2; }]
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { x = 2; }
+    ## ```
+    #@ [Attrs] -> Attrs
     merge-deep = foldl recursiveUpdate { };
 
-    # Merge the root of a list of attribute sets.
-    # Type: [Attrs] -> Attrs
-    # Usage: merge-shallow [{ x = 1; } { x = 2; }]
-    #   result: { x = 2; }
+    ## Merge the root of a list of attribute sets.
+    ## Example Usage:
+    ## ```nix
+    ## merge-shallow [{ x = 1; } { x = 2; }]
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { x = 2; }
+    ## ```
+    #@ [Attrs] -> Attrs
     merge-shallow = foldl mergeAttrs { };
 
-    # Merge shallow for packages, but allow one deeper layer of attribute sets.
-    # Type: [Attrs] -> Attrs
-    # Usage: merge-shallow-packages [ { inherit (pkgs) vim; some.value = true; } { some.value = false; } ]
-    #   result: { vim = ...; some.value = false; }
+    ## Merge shallow for packages, but allow one deeper layer of attribute sets.
+    ## Example Usage:
+    ## ```nix
+    ## merge-shallow-packages [ { inherit (pkgs) vim; some.value = true; } { some.value = false; } ]
+    ## ```
+    ## Result:
+    ## ```nix
+    ## { vim = ...; some.value = false; }
+    ## ```
+    #@ [Attrs] -> Attrs
     merge-shallow-packages = items:
       foldl
         (result: item:

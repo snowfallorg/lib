@@ -1,25 +1,30 @@
 { core-inputs
 , user-inputs
 , snowfall-lib
+, snowfall-config
 }:
 
 let
   inherit (builtins) dirOf baseNameOf;
-  inherit (core-inputs.nixpkgs.lib) assertMsg fix hasInfix concatMap foldl;
+  inherit (core-inputs.nixpkgs.lib) assertMsg fix hasInfix concatMap foldl optionals singleton;
 
   virtual-systems = import ./virtual-systems.nix;
 
   user-systems-root = snowfall-lib.fs.get-snowfall-file "systems";
   user-modules-root = snowfall-lib.fs.get-snowfall-file "modules";
-
-  get-inferred-system-name = path:
-    if snowfall-lib.path.has-file-extension "nix" path then
-      snowfall-lib.path.get-parent-directory path
-    else
-      baseNameOf path;
 in
 {
   system = rec {
+    # Get the name of a system based on its file path.
+    # Type: Path -> String
+    # Usage: get-inferred-system-name "/systems/my-system/default.nix"
+    #   result: "my-system"
+    get-inferred-system-name = path:
+      if snowfall-lib.path.has-file-extension "nix" path then
+        snowfall-lib.path.get-parent-directory path
+      else
+        baseNameOf path;
+
     # Check whether a named system is macOS.
     # Type: String -> Bool
     # Usage: is-darwin "x86_64-linux"
@@ -85,27 +90,37 @@ in
       let
         virtual-system-type = get-virtual-system-type target;
         virtual-system-builder = args:
-          assert (assertMsg (user-inputs ? nixos-generators) "In order to create virtual systems, you must include `nixos-generators` as a flake input.");
+          assert assertMsg (user-inputs ? nixos-generators) "In order to create virtual systems, you must include `nixos-generators` as a flake input.";
           user-inputs.nixos-generators.nixosGenerate
             (args // {
               format = virtual-system-type;
               specialArgs = args.specialArgs // {
                 format = virtual-system-type;
               };
+              modules = args.modules ++ [
+                ../../modules/nixos/user/default.nix
+              ];
             });
         darwin-system-builder = args:
-          assert (assertMsg (user-inputs ? darwin) "In order to create virtual systems, you must include `darwin` as a flake input.");
-          user-inputs.darwin.lib.darwinSystem ((builtins.removeAttrs args [ "system" ]) // {
-            specialArgs = args.specialArgs // {
-              format = "darwin";
-            };
-          });
+          assert assertMsg (user-inputs ? darwin) "In order to create virtual systems, you must include `darwin` as a flake input.";
+          user-inputs.darwin.lib.darwinSystem
+            ((builtins.removeAttrs args [ "system" "modules" ]) // {
+              specialArgs = args.specialArgs // {
+                format = "darwin";
+              };
+              modules = args.modules ++ [
+                ../../modules/darwin/user/default.nix
+              ];
+            });
         linux-system-builder = args:
           core-inputs.nixpkgs.lib.nixosSystem
             (args // {
               specialArgs = args.specialArgs // {
                 format = "linux";
               };
+              modules = args.modules ++ [
+                ../../modules/nixos/user/default.nix
+              ];
             });
       in
       if virtual-system-type != "" then
@@ -158,17 +173,26 @@ in
       , builder ? get-system-builder target
       , output ? get-system-output target
       , systems ? { }
+      , homes ? { }
       }:
       let
         lib = snowfall-lib.internal.system-lib;
+        home-system-modules = snowfall-lib.home.create-home-system-modules homes;
+        home-manager-module =
+          if is-darwin system then
+            user-inputs.home-manager.darwinModules.home-manager
+          else
+            user-inputs.home-manager.nixosModules.home-manager;
+        home-manager-modules = [ home-manager-module ] ++ home-system-modules;
       in
       {
         inherit channelName system builder output;
 
-        modules = [ path ] ++ modules;
+        modules = [ path ] ++ modules ++ (optionals (user-inputs ? home-manager) home-manager-modules);
 
         specialArgs = specialArgs // {
-          inherit target system name systems lib;
+          inherit target system systems lib;
+          host = name;
 
           virtual = (get-virtual-system-type target) != "";
           inputs = snowfall-lib.flake.without-src user-inputs;
@@ -177,21 +201,41 @@ in
 
     # Create all available systems.
     # Type: Attrs -> Attrs
-    # Usage: create-systems { hosts.my-host.specialArgs.x = true; modules = [ my-shared-module ]; }
+    # Usage: create-systems { hosts.my-host.specialArgs.x = true; modules.nixos = [ my-shared-module ]; }
     #   result: { my-host = <flake-utils-plus-system-configuration>; }
-    create-systems = systems:
+    create-systems = { systems ? { }, homes ? { } }:
       let
         targets = snowfall-lib.fs.get-directories user-systems-root;
         target-systems-metadata = concatMap get-target-systems-metadata targets;
-        user-modules = snowfall-lib.fs.get-default-nix-files-recursive user-modules-root;
+        user-nixos-modules = snowfall-lib.module.create-modules {
+          src = "${user-modules-root}/nixos";
+        };
+        user-darwin-modules = snowfall-lib.module.create-modules {
+          src = "${user-modules-root}/darwin";
+        };
+        nixos-modules = systems.modules.nixos or [ ];
+        darwin-modules = systems.modules.darwin or [ ];
+
         create-system' = created-systems: system-metadata:
           let
             overrides = systems.hosts.${system-metadata.name} or { };
+            user-modules =
+              if is-darwin system-metadata.target then
+                user-darwin-modules
+              else
+                user-nixos-modules;
+            user-modules-list = builtins.attrValues user-modules;
+            system-modules =
+              if is-darwin system-metadata.target then
+                darwin-modules
+              else
+                nixos-modules;
           in
           {
             ${system-metadata.name} = create-system (overrides // system-metadata // {
               systems = created-systems;
-              modules = user-modules ++ (overrides.modules or [ ]) ++ (systems.modules or [ ]);
+              modules = user-modules-list ++ (overrides.modules or [ ]) ++ system-modules;
+              inherit homes;
             });
           };
         created-systems = fix (created-systems:

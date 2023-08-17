@@ -1,6 +1,7 @@
 { core-inputs
 , user-inputs
 , snowfall-lib
+, snowfall-config
 }:
 
 let
@@ -47,6 +48,7 @@ rec {
           "templates"
           "package-namespace"
           "alias"
+          "snowfall"
         ];
 
     # Transform an attribute set of inputs into an attribute set where
@@ -72,15 +74,30 @@ rec {
       package-namespace = full-flake-options.package-namespace or "internal";
       custom-flake-options = flake.without-snowfall-options full-flake-options;
       alias = full-flake-options.alias or { };
-      systems = snowfall-lib.system.create-systems (full-flake-options.systems or { });
-      hosts = snowfall-lib.attrs.merge-shallow [ (full-flake-options.systems.hosts or { }) systems ];
+      homes = snowfall-lib.home.create-homes (full-flake-options.homes or { });
+      systems = snowfall-lib.system.create-systems {
+        systems = (full-flake-options.systems or { });
+        homes = (full-flake-options.homes or { });
+      };
+      hosts = snowfall-lib.attrs.merge-shallow [ (full-flake-options.systems.hosts or { }) systems homes ];
       templates = snowfall-lib.template.create-templates {
         overrides = (full-flake-options.templates or { });
         alias = alias.templates or { };
       };
-      modules = snowfall-lib.module.create-modules {
-        overrides = (full-flake-options.modules or { });
-        alias = alias.modules or { };
+      nixos-modules = snowfall-lib.module.create-modules {
+        src = snowfall-lib.fs.get-snowfall-file "modules/nixos";
+        overrides = (full-flake-options.modules.nixos or { });
+        alias = alias.modules.nixos or { };
+      };
+      darwin-modules = snowfall-lib.module.create-modules {
+        src = snowfall-lib.fs.get-snowfall-file "modules/darwin";
+        overrides = (full-flake-options.modules.darwin or { });
+        alias = alias.modules.darwin or { };
+      };
+      home-modules = snowfall-lib.module.create-modules {
+        src = snowfall-lib.fs.get-snowfall-file "modules/home";
+        overrides = (full-flake-options.modules.home or { });
+        alias = alias.modules.home or { };
       };
       overlays = snowfall-lib.overlay.create-overlays {
         inherit package-namespace;
@@ -120,7 +137,9 @@ rec {
         lib = snowfall-lib.internal.user-lib;
         inputs = snowfall-lib.flake.without-src user-inputs;
 
-        nixosModules = modules;
+        nixosModules = nixos-modules;
+        darwinModules = darwin-modules;
+        homeModules = home-modules;
 
         channelsConfig = full-flake-options.channels-config or { };
 

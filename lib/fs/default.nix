@@ -1,6 +1,7 @@
 { core-inputs
 , user-inputs
 , snowfall-lib
+, snowfall-config
 }:
 
 let
@@ -31,7 +32,7 @@ in
     # Type: Path -> Path
     # Usage: get-snowfall-file "systems"
     #   result: "/user-source/snowfall-dir/systems"
-    get-snowfall-file = path: "${user-inputs.snowfall.root or user-inputs.src}/${path}";
+    get-snowfall-file = path: "${snowfall-config.root}/${path}";
 
     # Get a file path relative to the this flake.
     # Type: Path -> Path

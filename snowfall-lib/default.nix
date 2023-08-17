@@ -100,7 +100,7 @@ let
       attrs = {
         inherit (user-options) inputs;
         snowfall-inputs = core-inputs;
-        lib = merge-shallow [ base-lib { internal = user-lib; } ];
+        lib = merge-shallow [ base-lib { ${snowfall-config.namespace} = user-lib; } ];
       };
       libs = builtins.map
         (path: callPackageWith attrs path { })

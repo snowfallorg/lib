@@ -1,5 +1,5 @@
 {
-  description = "A very basic flake";
+  description = "Snowfall Lib";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
@@ -34,7 +34,7 @@
           };
           flake-options = builtins.removeAttrs flake-and-lib-options [ "inputs" "src" ];
         in
-          lib.mkFlake flake-options;
+        lib.mkFlake flake-options;
     in
     {
       inherit mkLib mkFlake;

@@ -2,7 +2,7 @@
   description = "Snowfall Lib";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
+    nixpkgs.url = "github:nixos/nixpkgs/release-22.11";
     flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus";
 
     flake-compat = {
@@ -22,15 +22,15 @@
       # `lib.flake-utils-plus.mkApp`.
       # Usage: mkLib { inherit inputs; src = ./.; }
       #   result: lib
-      mkLib = import ./lib core-inputs;
+      mkLib = import ./snowfall-lib core-inputs;
 
       # A convenience wrapper to create the library and then call `lib.mkFlake`.
       # Usage: mkFlake { inherit inputs; src = ./.; ... }
       #   result: <flake-outputs>
-      mkFlake = flake-and-lib-options@{ inputs, src, ... }:
+      mkFlake = flake-and-lib-options@{ inputs, src, snowfall ? { }, ... }:
         let
           lib = mkLib {
-            inherit inputs src;
+            inherit inputs src snowfall;
           };
           flake-options = builtins.removeAttrs flake-and-lib-options [ "inputs" "src" ];
         in
@@ -38,5 +38,48 @@
     in
     {
       inherit mkLib mkFlake;
+
+      nixosModules = {
+        user = ./modules/nixos/user/default.nix;
+      };
+
+      darwinModules = {
+        user = ./modules/darwin/user/default.nix;
+      };
+
+      homeModules = {
+        user = ./modules/home/user/default.nix;
+      };
+
+      _snowfall = rec {
+
+        raw-config = config;
+
+        config = {
+          root = ./.;
+          src = ./.;
+          namespace = "snowfall";
+          lib-dir = "snowfall-lib";
+
+          meta = {
+            name = "snowfall-lib";
+            title = "Snowfall Lib";
+          };
+        };
+
+        internal-lib =
+          let
+            lib = mkLib {
+              src = ./.;
+
+              inputs = inputs // {
+                self = { };
+              };
+            };
+          in
+          builtins.removeAttrs
+            lib.snowfall
+            [ "internal" ];
+      };
     };
 }

@@ -37,12 +37,13 @@ cd config
 
 2. Create a new flake with one of the templates from [@snowfallorg/templates](https://github.com/snowfallorg/templates).
 
-| Name      | Description                                       |
-|-----------|---------------------------------------------------|
-| `system`  | A NixOS system and modules ready to modify.       |
-| `package` | A Nix Flake that exports packages and an overlay. |
-| `module`  | A Nix Flake that exports NixOS modules.           |
-| `lib`     | A Nix Flake that exports a custom `lib`           |
+| Name      | Description                                          |
+| --------- | ---------------------------------------------------- |
+| `system`  | A NixOS system and modules ready to modify.          |
+| `package` | A Nix Flake that exports packages and an overlay.    |
+| `module`  | A Nix Flake that exports NixOS modules.              |
+| `lib`     | A Nix Flake that exports a custom `lib`              |
+| `empty`   | A basic Nix Flake for you to customize from scratch. |
 
 ```bash
 # For example, to use the system template.
@@ -66,7 +67,7 @@ library instance with `mkLib`.
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -81,6 +82,10 @@ library instance with `mkLib`.
 				# your flake.
 				inherit inputs;
 				src = ./.;
+
+				# You can optionally place your Snowfall-related files in another
+				# directory.
+				snowfall.root = ./nix;
 			};
 		in
 		# We'll cover what to do here next.
@@ -100,6 +105,10 @@ let
 	lib = inputs.snowfall-lib.mkLib {
 		inherit inputs;
 		src = ./.;
+
+		# You can optionally place your Snowfall-related files in another
+		# directory.
+		snowfall.root = ./nix;
 	};
 in lib.mkFlake {
 }
@@ -114,7 +123,7 @@ inputs.snowfall-lib.mkFlake {
 };
 ```
 
-See [`lib.mkFlake`](#lib.mkflake) for information on how to configure your flake's outputs.
+See [`lib.mkFlake`](#libmkflake) for information on how to configure your flake's outputs.
 
 ## `lib`
 
@@ -150,7 +159,10 @@ Snowfall Lib has opinions about how a flake's files are laid out. This lets
 the structure that `lib` expects to find at the root of your flake.
 
 ```
-flake-root/ 
+snowfall-root/
+│ The Snowfall root defaults to "src", but can be changed by setting "snowfall.root".
+│ This is useful if you want to add a flake to a project, but don't want to clutter the
+│ root of the repository with directories.
 │
 │ Your Nix flake.
 ├─ flake.nix
@@ -161,7 +173,7 @@ flake-root/
 │  │ A Nix function called with `inputs`, `snowfall-inputs`, and `lib`.
 │  │ The function should return an attribute set to merge with `lib`.
 │  ├─ default.nix
-│  │  
+│  │
 │  │ Any (nestable) directory name.
 │  └─ **/
 │     │
@@ -184,12 +196,20 @@ flake-root/
 │
 ├─ modules/ (optional modules)
 │  │
-│  │ Any (nestable) directory name. The name of the directory will be the
-│  │ name of the module.
-│  └─ **/
+│  │ A directory named after the `platform` type that will be used for modules within.
+│  │
+│  │ Supported platforms are:
+│  │ - nixos
+│  │ - darwin
+│  │ - home
+│  └─ <platform>/
 │     │
-│     │ A NixOS module.
-│     └─ default.nix
+│     │ Any (nestable) directory name. The name of the directory will be the
+│     │ name of the module.
+│     └─ **/
+│        │
+│        │ A NixOS module.
+│        └─ default.nix
 │
 ├─ overlays/ (optional overlays)
 │  │
@@ -235,6 +255,37 @@ flake-root/
 │        │
 │        │ A NixOS module for your system's configuration.
 │        └─ default.nix
+│
+├─ homes/ (optional homes configurations)
+│  │
+│  │ A directory named after the `home` type that will be used for all homes within.
+│  │
+│  │ The architecture is any supported architecture of NixPkgs, for example:
+│  │  - x86_64
+│  │  - aarch64
+│  │  - i686
+│  │
+│  │ The format is any supported NixPkgs format *or* a format provided by either nix-darwin
+│  │ or nixos-generators. However, in order to build systems with nix-darwin or nixos-generators,
+│  │ you must add `darwin` and `nixos-generators` inputs to your flake respectively. Here
+│  │ are some example formats:
+│  │  - linux
+│  │  - darwin
+│  │  - iso
+│  │  - install-iso
+│  │  - do
+│  │  - vmware
+│  │
+│  │ With the architecture and format together (joined by a hyphen), you get the name of the
+│  │ directory for the home type.
+│  └─ <architecture>-<format>/
+│     │
+│     │ A directory that contains a single home's configuration. The directory name
+│     │ will be the name of the home.
+│     └─ <home-name>/
+│        │
+│        │ A NixOS module for your home's configuration.
+│        └─ default.nix
 ```
 
 #### Default Flake
@@ -247,7 +298,7 @@ packages, overlays, and shells specified by the [Flake Structure](#flake-structu
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -279,7 +330,7 @@ You can apply overlays and modules from your flake's inputs with the following o
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -338,7 +389,7 @@ on `pkgs` and consumers of your flake can use the generated `<your-flake>.overla
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -366,7 +417,7 @@ on `pkgs` and consumers of your flake can use the generated `<your-flake>.overla
 				# Optionally place all packages under a namespace when used in an overlay.
 				# Instead of accessing packages with `pkgs.<name>`, your internal packages
 				# will be available at `pkgs.<namespace>.<name>`.
-				overlay-package-namespace = "my-namespace";
+				package-namespace = "my-namespace";
 
 				# You can also pass through external packages or dynamically create new ones
 				# in addition to the ones that `lib` will create from your `packages/` directory.
@@ -383,7 +434,7 @@ on `pkgs` and consumers of your flake can use the generated `<your-flake>.overla
 
 Snowfall Lib will create packages and shells based on your `packages/` and `shells`
 directories. However, it is common to additionally map one of those packages or shells
-to be their respective default. This can be achieved by using `outputs-builder` and
+to be their respective default. This can be achieved by setting an `alias` and
 mapping the `default` package or shell to the name of the one you want.
 
 ```nix
@@ -391,7 +442,7 @@ mapping the `default` package or shell to the name of the one you want.
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -411,15 +462,21 @@ mapping the `default` package or shell to the name of the one you want.
 			};
 		in
 			lib.mkFlake {
-				# You can also pass through external packages or dynamically create new ones
-				# in addition to the ones that `lib` will create from your `packages/` directory.
-				outputs-builder = channels: {
+				alias = {
 					packages = {
 						default = "my-package";
 					};
 
-					devShells = {
+					shells = {
 						default = "my-shell";
+					};
+
+					modules = {
+						default = "my-module";
+					};
+
+					templates = {
+						default = "my-template";
 					};
 				};
 			};
@@ -437,7 +494,7 @@ include `darwin` and/or `nixos-generators` as inputs.
 	description = "My Flake";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
 		snowfall-lib = {
 			url = "github:snowfallorg/lib";
@@ -508,6 +565,48 @@ type. See the following table for a list of supported formats from NixOS Generat
 | vm-bootloader        | Same as vm, but uses a real bootloader instead of netbooting                             |
 | vm-nogui             | Same as vm, but without a GUI                                                            |
 | vmware               | VMWare image (VMDK)                                                                      |
+
+#### Home Manager
+
+Snowfall Lib supports configuring [Home Manager](https://github.com/nix-community/home-manager)
+for both standalone use and for use as a module with NixOS or nix-darwin. To use this feature,
+your flake must include `home-manager` as an input.
+
+```nix
+{
+	description = "My Flake";
+
+	inputs = {
+		nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
+
+		snowfall-lib = {
+			url = "github:snowfallorg/lib";
+			inputs.nixpkgs.follows = "nixpkgs";
+		};
+
+		# In order to use Home Manager.
+		home-manager = {
+			url = "github:nix-community/home-manager";
+			inputs.nixpkgs.follows = "nixpkgs";
+		};
+	};
+
+	outputs = inputs:
+		# This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
+		# directly unless you explicitly need a feature of `lib`.
+		let
+			lib = inputs.snowfall-lib.mkLib {
+				# You must pass in both your flake's inputs and the root directory of
+				# your flake.
+				inherit inputs;
+				src = ./.;
+			};
+		in
+			# No additional configuration is required to use this feature, you only
+			# have to add home-manager to your flake inputs.
+			lib.mkFlake { };
+}
+```
 
 ### `lib.snowfall.flake`
 
@@ -701,8 +800,11 @@ Result:
 File system utilities.
 
 #### `lib.snowfall.fs.is-file-kind`
+
 #### `lib.snowfall.fs.is-symlink-kind`
+
 #### `lib.snowfall.fs.is-directory-kind`
+
 #### `lib.snowfall.fs.is-unknown-kind`
 
 Matchers for file kinds. These are often used with `readDir`.
@@ -737,6 +839,24 @@ Result:
 
 ```nix
 "/user-source/systems"
+```
+
+#### `lib.snowfall.fs.get-snowfall-file`
+
+Get a file path relative to the user's snowfall directory.
+
+Type: `Path -> Path`
+
+Usage:
+
+```nix
+get-snowfall-file "systems"
+```
+
+Result:
+
+```nix
+"/user-source/snowfall-dir/systems"
 ```
 
 #### `lib.snowfall.fs.internal-get-file`
@@ -937,6 +1057,28 @@ Result:
 [ "./something/some-directory/a.nix" ]
 ```
 
+### `lib.snowfall.module`
+
+Utilities for working with NixOS modules.
+
+#### `lib.snowfall.module.create-modules`
+
+Create flake output modules.
+
+Type: `Attrs -> Attrs`
+
+Usage:
+
+```nix
+create-modules { src = ./my-modules; overrides = { inherit another-module; }; alias = { default = "another-module" }; }
+```
+
+Result:
+
+```nix
+{ another-module = ...; my-module = ...; default = ...; }
+```
+
 ### `lib.snowfall.attrs`
 
 Utilities for working with attribute sets.
@@ -1066,6 +1208,24 @@ Result:
 false
 ```
 
+#### `lib.snowfall.system.is-virtual`
+
+Check whether a named system is virtual.
+
+Type: `String -> Bool`
+
+Usage:
+
+```nix
+is-linux "x86_64-iso"
+```
+
+Result:
+
+```nix
+true
+```
+
 #### `lib.snowfall.system.get-virtual-system-type`
 
 Get the virtual system type of a system target.
@@ -1082,6 +1242,24 @@ Result:
 
 ```nix
 "iso"
+```
+
+#### `lib.snowfall.system.get-inferred-system-name`
+
+Get the name of a system based on its file path.
+
+Type: `Path -> String`
+
+Usage:
+
+```nix
+get-inferred-system-name "/systems/my-system/default.nix"
+```
+
+Result:
+
+```nix
+"my-system"
 ```
 
 #### `lib.snowfall.system.get-target-systems-metadata`
@@ -1175,7 +1353,7 @@ Result:
 ```
 
 #### `lib.snowfall.system.create-systems`
- 
+
 Create all available systems.
 
 Type: `Attrs -> Attrs`
@@ -1183,13 +1361,105 @@ Type: `Attrs -> Attrs`
 Usage:
 
 ```nix
-create-systems { hosts.my-host.specialArgs.x = true; modules = [ my-shared-module ]; }
+create-systems { hosts.my-host.specialArgs.x = true; modules.nixos = [ my-shared-module ]; }
 ```
 
 Result:
 
 ```nix
 { my-host = <flake-utils-plus-system-configuration>; }
+```
+
+### `lib.snowfall.home`
+
+#### `lib.snowfall.home.split-user-and-host`
+
+Get the user and host from a combined string.
+
+Type: `String -> Attrs`
+
+Usage:
+
+```nix
+split-user-and-host "myuser@myhost"
+```
+
+Result:
+
+```nix
+{ user = "myuser"; host = "myhost"; }
+```
+
+#### `lib.snowfall.home.create-home`
+
+Create a home.
+
+Type: `Attrs -> Attrs`
+
+Usage:
+
+```nix
+create-home { path = ./homes/my-home; }
+```
+
+Result:
+
+```nix
+<flake-utils-plus-home-configuration>
+```
+
+#### `lib.snowfall.home.create-homes`
+
+Create all available homes.
+
+Type: `Attrs -> Attrs`
+
+Usage:
+
+```nix
+create-homes { users."my-user@my-system".specialArgs.x = true; modules = [ my-shared-module ]; }
+```
+
+Result:
+
+```nix
+{ "my-user@my-system" = <flake-utils-plus-home-configuration>; }
+```
+
+#### `lib.snowfall.home.get-target-homes-metadata`
+
+Get structured data about all homes for a given target.
+
+Type: `String -> [Attrs]`
+
+Usage:
+
+```nix
+get-target-homes-metadata ./homes
+```
+
+Result:
+
+```nix
+[ { system = "x86_64-linux"; name = "my-home"; path = "/homes/x86_64-linux/my-home";} ]
+```
+
+#### `lib.snowfall.home.create-home-system-modules`
+
+Create system modules for home-manager integration.
+
+Type: `Attrs -> [Module]`
+
+Usage:
+
+```nix
+create-home-system-modules { users."my-user@my-system".specialArgs.x = true; modules = [ my-shared-module ]; }
+```
+
+Result:
+
+```nix
+[Module]
 ```
 
 ### `lib.snowfall.package`
@@ -1205,7 +1475,7 @@ Type: `Attrs -> Attrs`
 Usage:
 
 ```nix
-create-packages { inherit channels; src = ./my-packages; overrides = { inherit another-package; default = "my-package"; }; }
+create-packages { inherit channels; src = ./my-packages; overrides = { inherit another-package; }; alias = { default = "another-package"; }; }
 ```
 
 Result:
@@ -1227,7 +1497,7 @@ Type: `Attrs -> Attrs`
 Usage:
 
 ```nix
-create-shells { inherit channels; src = ./my-shells; overrides = { inherit another-shell; default = "my-shell"; }; }
+create-shells { inherit channels; src = ./my-shells; overrides = { inherit another-shell; }; alias = { default = "another-shell"; }; }
 ```
 
 Result:
@@ -1249,7 +1519,7 @@ Type: `Attrs -> Attrs -> [(a -> b -> c)]`
 Usage:
 
 ```nix
-create-overlays-builder { src = ./my-overlays; overlay-package-namespace = "my-packages"; extra-overlays = []; }
+create-overlays-builder { src = ./my-overlays; package-namespace = "my-packages"; extra-overlays = []; }
 ```
 
 Result:
@@ -1270,7 +1540,7 @@ Usage:
 create-overlays {
 	src = ./my-overlays;
 	packages-src = ./my-packages;
-	overlay-package-namespace = "my-namespace";
+	package-namespace = "my-namespace";
 	extra-overlays = {
 		my-example = final: prev: {};
 	};
@@ -1300,7 +1570,7 @@ Type: `Attrs -> Attrs`
 Usage:
 
 ```nix
-create-templates { src = ./my-templates; overrides = { inherit another-template; default = "my-template"; }; }
+create-templates { src = ./my-templates; overrides = { inherit another-template; }; alias = { default = "another-template"; }; }
 ```
 
 Result:

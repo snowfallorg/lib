@@ -7,6 +7,7 @@
   "amazon"
   "azure"
   "cloudstack"
+  "docker"
   "do"
   "gce"
   "hyperv"

@@ -1,19 +1,22 @@
-args@{ pkgs, lib, options, config, ... }:
-
-let
+args @ {
+  pkgs,
+  lib,
+  config,
+  ...
+}: let
   inherit (lib) types mkOption mkDefault foldl optionalAttrs optional;
 
   cfg = config.snowfallorg;
 
-  inputs = args.inputs or { };
+  inputs = args.inputs or {};
 
   user-names = builtins.attrNames cfg.user;
 
-  create-system-users = system-users: name:
-    let
-      user = cfg.user.${name};
-    in
-    system-users // (optionalAttrs user.create {
+  create-system-users = system-users: name: let
+    user = cfg.user.${name};
+  in
+    system-users
+    // (optionalAttrs user.create {
       ${name} = {
         isNormalUser = mkDefault true;
 
@@ -25,14 +28,12 @@ let
         extraGroups = optional user.admin "wheel";
       };
     });
-
-in
-{
+in {
   options.snowfallorg = {
     user = mkOption {
       description = "User configuration.";
-      default = { };
-      type = types.attrsOf (types.submodule ({ name, ... }: {
+      default = {};
+      type = types.attrsOf (types.submodule ({name, ...}: {
         options = {
           create = mkOption {
             description = "Whether to create the user automatically.";
@@ -63,29 +64,39 @@ in
               # @NOTE(jakehamilton): This has been adapted to support documentation generation without
               # having home-manager options fully declared.
               type = types.submoduleWith {
-                specialArgs = {
-                  osConfig = config;
-                  modulesPath = "${inputs.home-manager or "/"}/modules";
-                } // (config.home-manager.extraSpecialArgs or { });
-                modules = [
-                  ({ lib, modulesPath, ... }:
-                    if inputs ? home-manager then {
-                      imports = import "${modulesPath}/modules.nix" {
-                        inherit pkgs lib;
-                        useNixpkgsModule = !(config.home-manager.useGlobalPkgs or false);
-                      };
+                specialArgs =
+                  {
+                    osConfig = config;
+                    modulesPath = "${inputs.home-manager or "/"}/modules";
+                  }
+                  // (config.home-manager.extraSpecialArgs or {});
+                modules =
+                  [
+                    ({
+                      lib,
+                      modulesPath,
+                      ...
+                    }:
+                      if inputs ? home-manager
+                      then {
+                        imports = import "${modulesPath}/modules.nix" {
+                          inherit pkgs lib;
+                          useNixpkgsModule = !(config.home-manager.useGlobalPkgs or false);
+                        };
 
-                      config = {
-                        submoduleSupport.enable = true;
-                        submoduleSupport.externalPackageInstall = cfg.useUserPackages;
+                        config = {
+                          submoduleSupport.enable = true;
+                          submoduleSupport.externalPackageInstall = cfg.useUserPackages;
 
-                        home.username = config.users.users.${name}.name;
-                        home.homeDirectory = config.users.users.${name}.home;
+                          home.username = config.users.users.${name}.name;
+                          home.homeDirectory = config.users.users.${name}.home;
 
-                        nix.package = config.nix.package;
-                      };
-                    } else { })
-                ] ++ (config.home-manager.sharedModules or [ ]);
+                          nix.package = config.nix.package;
+                        };
+                      }
+                      else {})
+                  ]
+                  ++ (config.home-manager.sharedModules or []);
               };
             };
           };
@@ -95,6 +106,6 @@ in
   };
 
   config = {
-    users.users = (foldl (create-system-users) { } (user-names));
+    users.users = foldl create-system-users {} user-names;
   };
 }

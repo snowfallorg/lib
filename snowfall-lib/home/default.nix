@@ -328,7 +328,6 @@ in
                     enable = true;
                     name = mkDefault user-name;
                   };
-                  home.stateVersion = "22.11";
                 };
 
                 home-manager = {

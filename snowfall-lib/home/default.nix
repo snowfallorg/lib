@@ -333,6 +333,10 @@ in
 
                   # sharedModules = other-modules ++ optional config.snowfallorg.user.${user-name}.home.enable wrapped-user-module;
                   sharedModules = other-modules ++ optional config.snowfallorg.user.${user-name}.home.enable user-module;
+
+                  # NOTE: Without this home-manager will instead create its own package set which won't contain the same config and
+                  # user-defined packages/overlays as the flake's nixpkgs channel.
+                  useGlobalPkgs = mkDefault true;
                 };
               };
             }

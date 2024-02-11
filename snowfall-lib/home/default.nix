@@ -315,6 +315,8 @@ in
                     =============
                   '')
                     user-option;
+
+              home-config = mkAliasAndWrapDefinitions wrap-user-options options.snowfallorg.user;
             in
             {
               _file = "virtual:snowfallorg/home/user/${name}";
@@ -329,10 +331,10 @@ in
                 };
 
                 home-manager = {
-                  users.${user-name} = mkAliasAndWrapDefinitions wrap-user-options options.snowfallorg.user;
-
-                  # sharedModules = other-modules ++ optional config.snowfallorg.user.${user-name}.home.enable wrapped-user-module;
-                  sharedModules = other-modules ++ optional config.snowfallorg.user.${user-name}.home.enable user-module;
+                  users.${user-name} = mkIf config.snowfallorg.user.${user-name}.home.enable ({ pkgs, ... }: {
+                    imports = (home-config.imports or [ ]) ++ other-modules ++ [user-module];
+                    config = home-config;
+                  });
 
                   # NOTE: Without this home-manager will instead create its own package set which won't contain the same config and
                   # user-defined packages/overlays as the flake's nixpkgs channel.
@@ -347,7 +349,6 @@ in
         extra-special-args-module
         snowfall-user-home-module
       ]
-      ++ (users.modules or [ ])
       ++ shared-modules
       ++ system-modules;
   };

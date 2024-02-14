@@ -1,11 +1,11 @@
-{ core-inputs
-, user-inputs
-, snowfall-lib
-, snowfall-config
-}:
-
-let
-  inherit (core-inputs.nixpkgs.lib)
+{
+  core-inputs,
+  user-inputs,
+  snowfall-lib,
+  snowfall-config,
+}: let
+  inherit
+    (core-inputs.nixpkgs.lib)
     assertMsg
     mapAttrsToList
     mapAttrs
@@ -13,9 +13,9 @@ let
     foldl
     recursiveUpdate
     mergeAttrs
-    isDerivation;
-in
-{
+    isDerivation
+    ;
+in {
   attrs = {
     ## Map and flatten an attribute set into a list.
     ## Example Usage:
@@ -40,7 +40,7 @@ in
     ## { x = 2; }
     ## ```
     #@ [Attrs] -> Attrs
-    merge-deep = foldl recursiveUpdate { };
+    merge-deep = foldl recursiveUpdate {};
 
     ## Merge the root of a list of attribute sets.
     ## Example Usage:
@@ -52,7 +52,7 @@ in
     ## { x = 2; }
     ## ```
     #@ [Attrs] -> Attrs
-    merge-shallow = foldl mergeAttrs { };
+    merge-shallow = foldl mergeAttrs {};
 
     ## Merge shallow for packages, but allow one deeper layer of attribute sets.
     ## Example Usage:
@@ -66,19 +66,21 @@ in
     #@ [Attrs] -> Attrs
     merge-shallow-packages = items:
       foldl
-        (result: item:
-          result // (mapAttrs
-            (name: value:
-              if isDerivation value then
-                value
-              else if builtins.isAttrs value then
-                (result.${name} or { }) // value
-              else
-                value
+      (
+        result: item:
+          result
+          // (mapAttrs
+            (
+              name: value:
+                if isDerivation value
+                then value
+                else if builtins.isAttrs value
+                then (result.${name} or {}) // value
+                else value
             )
             item)
-        )
-        { }
-        items;
+      )
+      {}
+      items;
   };
 }

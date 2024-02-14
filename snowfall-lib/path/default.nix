@@ -1,16 +1,14 @@
-{ core-inputs
-, user-inputs
-, snowfall-lib
-, snowfall-config
-}:
-
-let
+{
+  core-inputs,
+  user-inputs,
+  snowfall-lib,
+  snowfall-config,
+}: let
   inherit (builtins) toString baseNameOf dirOf concatStringsSep;
   inherit (core-inputs.nixpkgs.lib) assertMsg last init;
 
   file-name-regex = "(.*)\\.(.*)$";
-in
-{
+in {
   path = rec {
     ## Split a file name and its extension.
     ## Example Usage:
@@ -22,12 +20,10 @@ in
     ## [ "my-file" "md" ]
     ## ```
     #@ String -> [String]
-    split-file-extension = file:
-      let
-        match = builtins.match file-name-regex file;
-      in
-      assert assertMsg (match != null) "lib.snowfall.split-file-extension: File must have an extension to split.";
-      match;
+    split-file-extension = file: let
+      match = builtins.match file-name-regex file;
+    in
+      assert assertMsg (match != null) "lib.snowfall.split-file-extension: File must have an extension to split."; match;
 
     ## Check if a file name has a file extension.
     ## Example Usage:
@@ -39,10 +35,9 @@ in
     ## true
     ## ```
     #@ String -> Bool
-    has-any-file-extension = file:
-      let
-        match = builtins.match file-name-regex (toString file);
-      in
+    has-any-file-extension = file: let
+      match = builtins.match file-name-regex (toString file);
+    in
       match != null;
 
     ## Get the file extension of a file name.
@@ -56,13 +51,12 @@ in
     ## ```
     #@ String -> String
     get-file-extension = file:
-      if has-any-file-extension file then
-        let
-          match = builtins.match file-name-regex (toString file);
-        in
+      if has-any-file-extension file
+      then let
+        match = builtins.match file-name-regex (toString file);
+      in
         last match
-      else
-        "";
+      else "";
 
     ## Check if a file name has a specific file extension.
     ## Example Usage:
@@ -75,10 +69,9 @@ in
     ## ```
     #@ String -> String -> Bool
     has-file-extension = extension: file:
-      if has-any-file-extension file then
-        extension == get-file-extension file
-      else
-        false;
+      if has-any-file-extension file
+      then extension == get-file-extension file
+      else false;
 
     ## Get the parent directory for a given path.
     ## Example Usage:
@@ -102,13 +95,11 @@ in
     ## "my-file"
     ## ```
     #@ Path -> String
-    get-file-name-without-extension = path:
-      let
-        file-name = baseNameOf path;
-      in
-      if has-any-file-extension file-name then
-        concatStringsSep "" (init (split-file-extension file-name))
-      else
-        file-name;
+    get-file-name-without-extension = path: let
+      file-name = baseNameOf path;
+    in
+      if has-any-file-extension file-name
+      then concatStringsSep "" (init (split-file-extension file-name))
+      else file-name;
   };
 }

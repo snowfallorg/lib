@@ -62,7 +62,7 @@ in {
             config = mkOption {
               # HM-compatible options taken from:
               # https://github.com/nix-community/home-manager/blob/0ee5ab611dc1fbb5180bd7d88d2aeb7841a4d179/nixos/common.nix#L14
-              # @NOTE(jakehamilton): This has been adapted to support documentation generation without
+              # NOTE: This has been adapted to support documentation generation without
               # having home-manager options fully declared.
               type = types.submoduleWith {
                 specialArgs =

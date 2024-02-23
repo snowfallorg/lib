@@ -9,7 +9,7 @@ inputs @ {
 
   cfg = config.snowfallorg;
 
-  # @NOTE(jakehamilton): The module system chokes if it finds `osConfig` named in the module arguments
+  # NOTE: The module system chokes if it finds `osConfig` named in the module arguments
   # when being used in standalone home-manager. To remedy this, we have to refer to the arguments set directly.
   os-user-home = inputs.osConfig.users.users.${cfg.name}.home or null;
 

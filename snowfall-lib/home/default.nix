@@ -32,13 +32,13 @@ in {
   home = rec {
     # Modules in home-manager expect `hm` to be available directly on `lib` itself.
     home-lib =
-      # @NOTE(jakehamilton): This prevents an error during evaluation if the input does
+      # NOTE: This prevents an error during evaluation if the input does
       # not exist.
       if user-inputs ? home-manager
       then
         snowfall-lib.internal.system-lib.extend
         (final: prev:
-          # @NOTE(jakehamilton): This order is important, this library's extend and other utilities must write
+          # NOTE: This order is important, this library's extend and other utilities must write
           # _over_ the original `system-lib`.
             snowfall-lib.internal.system-lib
             // prev
@@ -90,7 +90,7 @@ in {
     }: let
       user-metadata = split-user-and-host name;
 
-      # @NOTE(jakehamilton): home-manager has trouble with `pkgs` recursion if it isn't passed in here.
+      # NOTE: home-manager has trouble with `pkgs` recursion if it isn't passed in here.
       pkgs = user-inputs.self.pkgs.${system}.${channelName} // {lib = home-lib;};
       lib = home-lib;
     in
@@ -115,7 +115,7 @@ in {
 
           inputs = snowfall-lib.flake.without-src user-inputs;
 
-          # @NOTE(jakehamilton): home-manager has trouble with `pkgs` recursion if it isn't passed in here.
+          # NOTE: home-manager has trouble with `pkgs` recursion if it isn't passed in here.
           inherit pkgs lib;
         };
 
@@ -294,7 +294,7 @@ in {
             }: let
               host-matches = created-user.specialArgs.host == host;
 
-              # @NOTE(jakehamilton): To conform to the config structure of home-manager, we have to
+              # NOTE: To conform to the config structure of home-manager, we have to
               # remap the options coming from `snowfallorg.user.<name>.home.config` since `mkAliasDefinitions`
               # does not let us target options within a submodule.
               wrap-user-options = user-option:
@@ -333,6 +333,12 @@ in {
                     enable = true;
                     name = mkDefault user-name;
                   };
+
+                  # NOTE: specialArgs are not propagated by Home-Manager without this.
+                  # However, not all specialArgs values can be set when using `_module.args`.
+                  _module.args =
+                    builtins.removeAttrs (users.users.${name}.specialArgs or {})
+                    ["options" "config" "lib" "pkgs" "specialArgs"];
                 };
 
                 home-manager = {

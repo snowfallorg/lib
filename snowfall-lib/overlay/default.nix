@@ -26,7 +26,16 @@ in {
       extra-overlays ? [],
     }: channels: let
       user-overlays = snowfall-lib.fs.get-default-nix-files-recursive src;
-      create-overlay = overlay: import overlay (user-inputs // {inherit channels;});
+      create-overlay = overlay:
+        import overlay (
+          # Deprecated: Use `inputs.*` instead of referencing the input name directly.
+          user-inputs
+          // {
+            inherit channels;
+            inputs = user-inputs;
+            lib = snowfall-lib.internal.system-lib;
+          }
+        );
       user-packages-overlay = final: prev: let
         user-packages = snowfall-lib.package.create-packages {
           pkgs = final;
@@ -89,7 +98,15 @@ in {
           name = builtins.unsafeDiscardStringContext (snowfall-lib.path.get-parent-directory file);
           overlay = final: prev: let
             channels = channel-systems.${prev.system};
-            user-overlay = import file (user-inputs // {inherit channels;});
+            user-overlay = import file (
+              # Deprecated: Use `inputs.*` instead of referencing the input name directly.
+              user-inputs
+              // {
+                inherit channels;
+                inputs = user-inputs;
+                lib = snowfall-lib.internal.system-lib;
+              }
+            );
             packages = user-packages-overlay final prev;
             prev-with-packages =
               if package-namespace == null

@@ -330,7 +330,7 @@ in {
                 # Initialize user information.
                 snowfallorg.user.${user-name}.home.config = {
                   snowfallorg.user = {
-                    enable = true;
+                    enable = mkDefault true;
                     name = mkDefault user-name;
                   };
 

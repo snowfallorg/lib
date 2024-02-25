@@ -65,6 +65,7 @@ in rec {
         "outputsBuilder"
         "packagesPrefix"
         "hosts"
+        "homes"
         "channels-config"
         "templates"
         "package-namespace"

@@ -231,7 +231,11 @@ in {
         src = "${user-modules-root}/home";
       };
 
-      shared-modules =
+      shared-modules = builtins.map (module: {
+        config.home-manager.sharedModules = [module];
+      }) (users.modules or []);
+
+      shared-user-modules =
         mapAttrsToList
         (module-path: module: {
           _file = "${user-modules-root}/home/${module-path}/default.nix";
@@ -361,6 +365,7 @@ in {
         snowfall-user-home-module
       ]
       ++ shared-modules
+      ++ shared-user-modules
       ++ system-modules;
   };
 }

@@ -318,7 +318,7 @@ in {
                   (builtins.trace ''
                     =============
                     Snowfall Lib:
-                    Option value for `snowfallorg.user.${user-name}` was not detected to be merged.
+                    Option value for `snowfallorg.users.${user-name}` was not detected to be merged.
 
                     Please report the issue on GitHub with a link to your configuration so we can debug the problem:
                       https://github.com/snowfallorg/lib/issues/new
@@ -326,13 +326,13 @@ in {
                   '')
                   user-option;
 
-              home-config = mkAliasAndWrapDefinitions wrap-user-options options.snowfallorg.user;
+              home-config = mkAliasAndWrapDefinitions wrap-user-options options.snowfallorg.users;
             in {
               _file = "virtual:snowfallorg/home/user/${name}";
 
               config = mkIf host-matches {
                 # Initialize user information.
-                snowfallorg.user.${user-name}.home.config = {
+                snowfallorg.users.${user-name}.home.config = {
                   snowfallorg.user = {
                     enable = mkDefault true;
                     name = mkDefault user-name;
@@ -346,9 +346,9 @@ in {
                 };
 
                 home-manager = {
-                  users.${user-name} = mkIf config.snowfallorg.user.${user-name}.home.enable ({pkgs, ...}: {
+                  users.${user-name} = mkIf config.snowfallorg.users.${user-name}.home.enable ({pkgs, ...}: {
                     imports = (home-config.imports or []) ++ other-modules ++ [user-module];
-                    config = home-config;
+                    config = builtins.removeAttrs home-config ["imports"];
                   });
 
                   # NOTE: Without this home-manager will instead create its own package set which won't contain the same config and

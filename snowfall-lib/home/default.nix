@@ -24,6 +24,8 @@
     mkAliasAndWrapDefinitions
     mkOption
     types
+    hasInfix
+    hasSuffix
     ;
 
   user-homes-root = snowfall-lib.fs.get-snowfall-file "homes";
@@ -95,7 +97,7 @@ in {
       lib = home-lib;
     in
       assert assertMsg (user-inputs ? home-manager) "In order to create home-manager configurations, you must include `home-manager` as a flake input.";
-      assert assertMsg (user-metadata.host != "") "Snowfall Lib homes must be named with the format: user@system"; {
+      assert assertMsg ((user-metadata.host != "") || !(hasInfix "@" name)) "Snowfall Lib homes must be named with the format: user@system"; {
         inherit channelName system;
 
         output = "homeConfigurations";
@@ -108,7 +110,7 @@ in {
           ++ modules;
 
         specialArgs = {
-          inherit name;
+          inherit name system;
           inherit (user-metadata) user host;
 
           format = "home";
@@ -294,9 +296,12 @@ in {
               options,
               pkgs,
               host ? "",
+              system ? pkgs.system,
               ...
             }: let
-              host-matches = created-user.specialArgs.host == host;
+              host-matches =
+                (created-user.specialArgs.host == host)
+                || (created-user.specialArgs.host == "" && created-user.specialArgs.system == system);
 
               # NOTE: To conform to the config structure of home-manager, we have to
               # remap the options coming from `snowfallorg.user.<name>.home.config` since `mkAliasDefinitions`
@@ -342,7 +347,7 @@ in {
                   # However, not all specialArgs values can be set when using `_module.args`.
                   _module.args =
                     builtins.removeAttrs (users.users.${name}.specialArgs or {})
-                    ["options" "config" "lib" "pkgs" "specialArgs"];
+                    ["options" "config" "lib" "pkgs" "specialArgs" "host"];
                 };
 
                 home-manager = {

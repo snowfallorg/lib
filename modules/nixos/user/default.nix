@@ -5,16 +5,25 @@ args @ {
   config,
   ...
 }: let
-  inherit (lib) types mkOption mkDefault foldl optionalAttrs optional;
+  inherit
+    (lib)
+    types
+    mkOption
+    mkDefault
+    mkRenamedOptionModule
+    foldl
+    optionalAttrs
+    optional
+    ;
 
   cfg = config.snowfallorg;
 
   inputs = args.inputs or {};
 
-  user-names = builtins.attrNames cfg.user;
+  user-names = builtins.attrNames cfg.users;
 
   create-system-users = system-users: name: let
-    user = cfg.user.${name};
+    user = cfg.users.${name};
   in
     system-users
     // (optionalAttrs user.create {
@@ -30,8 +39,12 @@ args @ {
       };
     });
 in {
+  imports = [
+    (mkRenamedOptionModule ["snowfallorg" "user"] ["snowfallorg" "users"])
+  ];
+
   options.snowfallorg = {
-    user = mkOption {
+    users = mkOption {
       description = "User configuration.";
       default = {};
       type = types.attrsOf (types.submodule ({name, ...}: {

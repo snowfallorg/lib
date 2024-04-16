@@ -4,7 +4,7 @@
   snowfall-lib,
   snowfall-config,
 }: let
-  inherit (core-inputs.nixpkgs.lib) assertMsg fix fold filterAttrs callPackageWith;
+  inherit (core-inputs.nixpkgs.lib) fix filterAttrs callPackageWith isFunction;
 
   core-inputs-libs = snowfall-lib.flake.get-libs (snowfall-lib.flake.without-self core-inputs);
   user-inputs-libs = snowfall-lib.flake.get-libs (snowfall-lib.flake.without-self user-inputs);
@@ -34,7 +34,15 @@
       };
       libs =
         builtins.map
-        (path: callPackageWith attrs path {})
+        (
+          path: let
+            imported-module = import path;
+          in
+            if isFunction imported-module
+            then callPackageWith attrs path {}
+            # the only difference is that there is no `override` and `overrideDerivation` on returned value
+            else imported-module
+        )
         user-lib-modules;
     in
       snowfall-lib.attrs.merge-deep libs

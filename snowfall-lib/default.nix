@@ -18,7 +18,7 @@ core-inputs: user-options: let
 
   user-inputs = user-options.inputs // {src = user-options.src;};
 
-  inherit (core-inputs.nixpkgs.lib) assertMsg fix filterAttrs mergeAttrs fold recursiveUpdate callPackageWith;
+  inherit (core-inputs.nixpkgs.lib) assertMsg fix filterAttrs mergeAttrs fold recursiveUpdate callPackageWith isFunction;
 
   # Recursively merge a list of attribute sets.
   # Type: [Attrs] -> Attrs
@@ -58,7 +58,7 @@ core-inputs: user-options: let
   core-inputs-libs = get-libs (without-self core-inputs);
   user-inputs-libs = get-libs (without-self user-inputs);
 
-  # NOTE: This root is different to accomodate the creation
+  # NOTE: This root is different to accommodate the creation
   # of a fake user-lib in order to run documentation on this flake.
   snowfall-lib-root = "${core-inputs.src}/snowfall-lib";
   snowfall-lib-dirs = let
@@ -103,7 +103,15 @@ core-inputs: user-options: let
       };
       libs =
         builtins.map
-        (path: callPackageWith attrs path {})
+        (
+          path: let
+            imported-module = import path;
+          in
+            if isFunction imported-module
+            then callPackageWith attrs path {}
+            # the only difference is that there is no `override` and `overrideDerivation` on returned value
+            else imported-module
+        )
         user-lib-modules;
     in
       merge-deep libs

@@ -5,7 +5,7 @@
   snowfall-config,
 }: let
   inherit (builtins) baseNameOf;
-  inherit (core-inputs.nixpkgs.lib) assertMsg foldl mapAttrs hasPrefix;
+  inherit (core-inputs.nixpkgs.lib) foldl mapAttrs hasPrefix isFunction;
 
   user-modules-root = snowfall-lib.fs.get-snowfall-file "modules";
 in {
@@ -67,7 +67,11 @@ in {
 
                 inputs = snowfall-lib.flake.without-src user-inputs;
               };
-            user-module = import metadata.path modified-args;
+            imported-user-module = import metadata.path;
+            user-module =
+              if isFunction imported-user-module
+              then imported-user-module modified-args
+              else imported-user-module;
           in
             user-module // {_file = metadata.path;};
         };

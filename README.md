@@ -7,13 +7,7 @@
   <a href="https://github.com/nix-community/nixos-generators" target="_blank"><img alt="Generators Ready" src="https://img.shields.io/static/v1?logo=linux-containers&logoColor=d8dee9&label=Generators&labelColor=5e81ac&message=Ready&color=d8dee9&style=for-the-badge"></a>
 </p>
 
-<p>
-<!--
-	This paragraph is not empty, it contains an em space (UTF-8 8195) on the next line in order
-	to create a gap in the page.
--->
-  
-</p>
+&nbsp;
 
 > Unified configuration for systems, packages, modules, shells, templates, and more with Nix Flakes.
 >

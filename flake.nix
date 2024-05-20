@@ -2,7 +2,7 @@
   description = "Snowfall Lib";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/release-22.11";
+    nixpkgs.url = "github:nixos/nixpkgs/release-23.11";
     flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus";
 
     flake-compat = {

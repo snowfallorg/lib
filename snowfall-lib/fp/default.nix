@@ -1,14 +1,12 @@
-{ core-inputs
-, user-inputs
-, snowfall-lib
-, snowfall-config
-}:
-
-let
+{
+  core-inputs,
+  user-inputs,
+  snowfall-lib,
+  snowfall-config,
+}: let
   inherit (builtins) baseNameOf dirOf;
   inherit (core-inputs.nixpkgs.lib) id foldr flip;
-in
-{
+in {
   fp = rec {
     ## Compose two functions.
     ## Example Usage:

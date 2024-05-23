@@ -1,25 +1,27 @@
-inputs@{ pkgs, lib, options, config, ... }:
-
-let
+inputs @ {
+  pkgs,
+  lib,
+  options,
+  config,
+  ...
+}: let
   inherit (lib) types mkOption mkIf mkDefault;
 
   cfg = config.snowfallorg;
 
-  # @NOTE(jakehamilton): The module system chokes if it finds `osConfig` named in the module arguments
+  # NOTE: The module system chokes if it finds `osConfig` named in the module arguments
   # when being used in standalone home-manager. To remedy this, we have to refer to the arguments set directly.
   os-user-home = inputs.osConfig.users.users.${cfg.name}.home or null;
 
   has-user-name = (cfg.user.name or null) != null;
 
   default-home-directory =
-    if (os-user-home != null) then
-      os-user-home
-    else if pkgs.stdenv.isDarwin then
-      "/Users/${cfg.user.name}"
-    else
-      "/home/${cfg.user.name}";
-in
-{
+    if (os-user-home != null)
+    then os-user-home
+    else if pkgs.stdenv.isDarwin
+    then "/Users/${cfg.user.name}"
+    else "/home/${cfg.user.name}";
+in {
   options.snowfallorg = {
     user = {
       enable = mkOption {

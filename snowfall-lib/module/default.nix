@@ -28,7 +28,7 @@ in {
       user-modules = snowfall-lib.fs.get-default-nix-files-recursive src;
       create-module-metadata = module: {
         name = let
-          path-name = builtins.replaceStrings [src "/default.nix"] ["" ""] (builtins.unsafeDiscardStringContext module);
+          path-name = builtins.replaceStrings [(builtins.toString src) "/default.nix"] ["" ""] (builtins.unsafeDiscardStringContext module);
         in
           if hasPrefix "/" path-name
           then builtins.substring 1 ((builtins.stringLength path-name) - 1) path-name

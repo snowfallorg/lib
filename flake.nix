@@ -62,7 +62,7 @@
       aarch64-darwin = inputs.nixpkgs.legacyPackages.aarch64-darwin.alejandra;
     };
 
-    _snowfall = rec {
+    snowfall = rec {
       raw-config = config;
 
       config = {

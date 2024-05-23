@@ -36,7 +36,7 @@ in {
     ## "/user-source/systems"
     ## ```
     #@ Path -> Path
-    get-file = path: "${user-inputs.src}/${path}";
+    get-file = path: user-inputs.src + "/${path}";
 
     ## Get a file path relative to the user's snowfall directory.
     ## Example Usage:
@@ -48,7 +48,7 @@ in {
     ## "/user-source/snowfall-dir/systems"
     ## ```
     #@ Path -> Path
-    get-snowfall-file = path: "${snowfall-config.root}/${path}";
+    get-snowfall-file = path: snowfall-config.root + "/${path}";
 
     ## Get a file path relative to the this flake.
     ## Example Usage:
@@ -60,7 +60,7 @@ in {
     ## "/user-source/systems"
     ## ```
     #@ Path -> Path
-    internal-get-file = path: "${core-inputs.src}/${path}";
+    internal-get-file = path: core-inputs.src + "/${path}";
 
     ## Safely read from a directory if it exists.
     ## Example Usage:

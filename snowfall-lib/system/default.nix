@@ -260,6 +260,7 @@ in {
 
           virtual = (get-virtual-system-type target) != "";
           inputs = snowfall-lib.flake.without-src user-inputs;
+          namespace = snowfall-config.namespace;
         };
     };
 

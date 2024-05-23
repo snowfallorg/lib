@@ -68,7 +68,7 @@ in rec {
         "homes"
         "channels-config"
         "templates"
-        "package-namespace"
+        "checks"
         "alias"
         "snowfall"
       ];
@@ -96,7 +96,7 @@ in rec {
   };
 
   mkFlake = full-flake-options: let
-    package-namespace = full-flake-options.package-namespace or snowfall-config.namespace or "internal";
+    namespace = snowfall-config.namespace or "internal";
     custom-flake-options = flake.without-snowfall-options full-flake-options;
     alias = full-flake-options.alias or {};
     homes = snowfall-lib.home.create-homes (full-flake-options.homes or {});
@@ -125,7 +125,7 @@ in rec {
       alias = alias.modules.home or {};
     };
     overlays = snowfall-lib.overlay.create-overlays {
-      inherit package-namespace;
+      inherit namespace;
       extra-overlays = full-flake-options.extra-exported-overlays or {};
     };
 
@@ -136,7 +136,7 @@ in rec {
         or (const {});
       user-outputs = user-outputs-builder channels;
       packages = snowfall-lib.package.create-packages {
-        inherit channels package-namespace;
+        inherit channels namespace;
         overrides = (full-flake-options.packages or {}) // (user-outputs.packages or {});
         alias = alias.packages or {};
       };
@@ -145,9 +145,14 @@ in rec {
         overrides = (full-flake-options.shells or {}) // (user-outputs.devShells or {});
         alias = alias.shells or {};
       };
+      checks = snowfall-lib.check.create-checks {
+        inherit channels;
+        overrides = (full-flake-options.checks or {}) // (user-outputs.checks or {});
+        alias = alias.checks or {};
+      };
 
       outputs = {
-        inherit packages;
+        inherit packages checks;
 
         devShells = shells;
       };
@@ -170,13 +175,13 @@ in rec {
         channelsConfig = full-flake-options.channels-config or {};
 
         channels.nixpkgs.overlaysBuilder = snowfall-lib.overlay.create-overlays-builder {
-          inherit package-namespace;
+          inherit namespace;
           extra-overlays = full-flake-options.overlays or [];
         };
 
         outputsBuilder = outputs-builder;
 
-        _snowfall = {
+        snowfall = {
           config = snowfall-config;
           raw-config = full-flake-options.snowfall or {};
           user-lib = snowfall-lib.internal.user-lib;

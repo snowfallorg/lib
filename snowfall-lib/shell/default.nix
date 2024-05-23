@@ -35,6 +35,7 @@ in {
             inherit channels;
             lib = snowfall-lib.internal.system-lib;
             inputs = snowfall-lib.flake.without-src user-inputs;
+            namespace = snowfall-config.namespace;
           };
       in {
         name = builtins.unsafeDiscardStringContext (snowfall-lib.path.get-parent-directory shell);

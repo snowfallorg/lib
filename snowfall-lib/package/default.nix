@@ -26,21 +26,21 @@ in {
       pkgs ? channels.nixpkgs,
       overrides ? {},
       alias ? {},
-      package-namespace ? "internal",
+      namespace ? snowfall-config.namespace,
     }: let
       user-packages = snowfall-lib.fs.get-default-nix-files-recursive src;
       create-package-metadata = package: let
         namespaced-packages = {
-          ${package-namespace} = packages-without-aliases;
+          ${namespace} = packages-without-aliases;
         };
         extra-inputs =
           pkgs
           // namespaced-packages
           // {
-            inherit channels;
+            inherit channels namespace;
             lib = snowfall-lib.internal.system-lib;
             pkgs = pkgs // namespaced-packages;
-            inputs = snowfall-lib.flake.without-snowfall-inputs user-inputs;
+            inputs = user-inputs;
           };
       in {
         name = builtins.unsafeDiscardStringContext (snowfall-lib.path.get-parent-directory package);

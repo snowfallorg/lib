@@ -37,6 +37,8 @@ in {
         templates
         // {
           ${metadata.name} =
+            (builtins.trace "name: ${metadata.name}")
+            (builtins.trace "path: ${metadata.path}")
             (overrides.${metadata.name} or {})
             // {
               inherit (metadata) path;
@@ -44,7 +46,8 @@ in {
         };
       templates-without-aliases = foldl merge-templates {} templates-metadata;
       aliased-templates = mapAttrs (name: value: templates-without-aliases.${value}) alias;
-      templates = templates-without-aliases // aliased-templates // overrides;
+      unused-overrides = builtins.removeAttrs overrides (builtins.map (metadata: metadata.name) templates-metadata);
+      templates = templates-without-aliases // aliased-templates // unused-overrides;
     in
       templates;
   };

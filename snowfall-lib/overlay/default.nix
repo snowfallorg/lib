@@ -13,7 +13,7 @@ in {
     ## Create a flake-utils-plus overlays builder.
     ## Example Usage:
     ## ```nix
-    ## create-overlays { src = ./my-overlays; package-namespace = "my-packages"; }
+    ## create-overlays { src = ./my-overlays; namespace = "my-packages"; }
     ## ```
     ## Result:
     ## ```nix
@@ -22,7 +22,7 @@ in {
     #@ Attrs -> Attrs -> [(a -> b -> c)]
     create-overlays-builder = {
       src ? user-overlays-root,
-      package-namespace ? "internal",
+      namespace ? snowfall-config.namespace,
       extra-overlays ? [],
     }: channels: let
       user-overlays = snowfall-lib.fs.get-default-nix-files-recursive src;
@@ -39,11 +39,11 @@ in {
       user-packages-overlay = final: prev: let
         user-packages = snowfall-lib.package.create-packages {
           pkgs = final;
-          channels = channels;
+          inherit channels namespace;
         };
       in {
-        ${package-namespace} =
-          (prev.${package-namespace} or {})
+        ${namespace} =
+          (prev.${namespace} or {})
           // user-packages;
       };
       overlays =
@@ -55,7 +55,7 @@ in {
     ##
     ## Example Usage:
     ## ```nix
-    ## create-overlays { src = ./my-overlays; packages-src = ./my-packages; package-namespace = "my-namespace"; extra-overlays = {}; }
+    ## create-overlays { src = ./my-overlays; packages-src = ./my-packages; namespace = "my-namespace"; extra-overlays = {}; }
     ## ```
     ## Result:
     ## ```nix
@@ -65,7 +65,7 @@ in {
     create-overlays = {
       src ? user-overlays-root,
       packages-src ? user-packages-root,
-      package-namespace ? null,
+      namespace ? snowfall-config.namespace,
       extra-overlays ? {},
     }: let
       fake-pkgs = {
@@ -83,13 +83,14 @@ in {
         user-packages = snowfall-lib.package.create-packages {
           pkgs = final;
           channels = channel-systems.${prev.system};
+          inherit namespace;
         };
       in
-        if package-namespace == null
+        if namespace == null
         then user-packages
         else {
-          ${package-namespace} =
-            (prev.${package-namespace} or {})
+          ${namespace} =
+            (prev.${namespace} or {})
             // user-packages;
         };
 
@@ -102,21 +103,21 @@ in {
               # Deprecated: Use `inputs.*` instead of referencing the input name directly.
               user-inputs
               // {
-                inherit channels;
+                inherit channels namespace;
                 inputs = user-inputs;
                 lib = snowfall-lib.internal.system-lib;
               }
             );
             packages = user-packages-overlay final prev;
             prev-with-packages =
-              if package-namespace == null
+              if namespace == null
               then prev // packages
               else
                 prev
                 // {
-                  ${package-namespace} =
-                    (prev.${package-namespace} or {})
-                    // packages.${package-namespace};
+                  ${namespace} =
+                    (prev.${namespace} or {})
+                    // packages.${namespace};
                 };
             user-overlay-packages =
               user-overlay
@@ -152,14 +153,15 @@ in {
         overlay = final: prev: let
           channels = channel-systems.${prev.system};
           packages = snowfall-lib.package.create-packages {
+            inherit namespace;
             channels = channel-systems.${prev.system};
           };
         in
-          if package-namespace == null
+          if namespace == null
           then {${name} = packages.${name};}
           else {
-            ${package-namespace} =
-              (prev.${package-namespace} or {})
+            ${namespace} =
+              (prev.${namespace} or {})
               // {${name} = packages.${name};};
           };
       in

@@ -116,6 +116,7 @@ in {
           format = "home";
 
           inputs = snowfall-lib.flake.without-src user-inputs;
+          namespace = snowfall-config.namespace;
 
           # NOTE: home-manager has trouble with `pkgs` recursion if it isn't passed in here.
           inherit pkgs lib;
@@ -345,9 +346,11 @@ in {
 
                   # NOTE: specialArgs are not propagated by Home-Manager without this.
                   # However, not all specialArgs values can be set when using `_module.args`.
-                  _module.args =
-                    builtins.removeAttrs (users.users.${name}.specialArgs or {})
-                    ["options" "config" "lib" "pkgs" "specialArgs" "host"];
+                  _module.args = builtins.removeAttrs ((users.users.${name}.specialArgs or {})
+                    // {
+                      namespace = snowfall-config.namespace;
+                    })
+                  ["options" "config" "lib" "pkgs" "specialArgs" "host"];
                 };
 
                 home-manager = {

@@ -99,6 +99,7 @@ core-inputs: user-options: let
       attrs = {
         inherit (user-options) inputs;
         snowfall-inputs = core-inputs;
+        namespace = snowfall-config.namespace;
         lib = merge-shallow [base-lib {${snowfall-config.namespace} = user-lib;}];
       };
       libs =

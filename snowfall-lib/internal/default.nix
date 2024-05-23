@@ -19,7 +19,7 @@
     {snowfall = snowfall-lib;}
   ];
 
-  user-lib-root = snowfall-lib.fs.get-file "lib";
+  user-lib-root = snowfall-lib.fs.get-snowfall-file "lib";
   user-lib-modules = snowfall-lib.fs.get-default-nix-files-recursive user-lib-root;
 
   user-lib = fix (
@@ -27,6 +27,7 @@
       attrs = {
         inputs = snowfall-lib.flake.without-snowfall-inputs user-inputs;
         snowfall-inputs = core-inputs;
+        namespace = snowfall-config.namespace;
         lib = snowfall-lib.attrs.merge-shallow [
           base-lib
           {internal = user-lib;}

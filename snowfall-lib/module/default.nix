@@ -66,6 +66,7 @@ in {
                 pkgs = user-inputs.self.pkgs.${system}.nixpkgs;
 
                 inputs = snowfall-lib.flake.without-src user-inputs;
+                namespace = snowfall-config.namespace;
               };
             imported-user-module = import metadata.path;
             user-module =

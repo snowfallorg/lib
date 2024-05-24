@@ -5,7 +5,7 @@
   snowfall-config,
 }: let
   inherit (builtins) baseNameOf;
-  inherit (core-inputs.nixpkgs.lib) foldl mapAttrs hasPrefix isFunction;
+  inherit (core-inputs.nixpkgs.lib) foldl mapAttrs hasPrefix hasSuffix isFunction splitString tail;
 
   user-modules-root = snowfall-lib.fs.get-snowfall-file "modules";
 in {
@@ -28,7 +28,17 @@ in {
       user-modules = snowfall-lib.fs.get-default-nix-files-recursive src;
       create-module-metadata = module: {
         name = let
-          path-name = builtins.replaceStrings [(builtins.toString src) "/default.nix"] ["" ""] (builtins.unsafeDiscardStringContext module);
+          raw-path = builtins.replaceStrings [(builtins.toString src) "/default.nix"] ["" ""] (builtins.unsafeDiscardStringContext module);
+          # We want to remove the nix store prefix from the entry.
+          raw-path-parts = builtins.split "/nix/store/[a-zA-Z0-9]{32}-[^/]*/" raw-path;
+          path-name-parts = builtins.filter builtins.isString raw-path-parts;
+          normalized-name-parts =
+            # We don't include the name of the source directory.
+            if builtins.length path-name-parts > 1
+            then tail path-name-parts
+            else path-name-parts;
+
+          path-name = builtins.concatStringsSep "/" normalized-name-parts;
         in
           if hasPrefix "/" path-name
           then builtins.substring 1 ((builtins.stringLength path-name) - 1) path-name

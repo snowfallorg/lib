@@ -37,8 +37,6 @@ in {
         templates
         // {
           ${metadata.name} =
-            (builtins.trace "name: ${metadata.name}")
-            (builtins.trace "path: ${metadata.path}")
             (overrides.${metadata.name} or {})
             // {
               inherit (metadata) path;

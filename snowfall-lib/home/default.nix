@@ -355,9 +355,11 @@ in {
 
                 home-manager = {
                   users.${user-name} = mkIf config.snowfallorg.users.${user-name}.home.enable ({pkgs, ...}: {
-                    imports = (home-config.imports or []) ++ other-modules ++ [user-module];
+                    imports = (home-config.imports or []) ++ other-modules;
                     config = builtins.removeAttrs home-config ["imports"];
                   });
+
+                  sharedModules = optional config.snowfallorg.users.${user-name}.home.enable user-module;
 
                   # NOTE: Without this home-manager will instead create its own package set which won't contain the same config and
                   # user-defined packages/overlays as the flake's nixpkgs channel.

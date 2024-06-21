@@ -30,7 +30,7 @@
         namespace = snowfall-config.namespace;
         lib = snowfall-lib.attrs.merge-shallow [
           base-lib
-          {internal = user-lib;}
+          {"${snowfall-config.namespace}" = user-lib;}
         ];
       };
       libs =

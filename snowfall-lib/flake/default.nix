@@ -4,7 +4,7 @@
   snowfall-lib,
   snowfall-config,
 }: let
-  inherit (core-inputs.nixpkgs.lib) assertMsg foldl filterAttrs const;
+  inherit (core-inputs.nixpkgs.lib) const filterAttrs mapAttrs traceVal;
 in rec {
   flake = rec {
     ## Remove the `self` attribute from an attribute set.
@@ -128,6 +128,7 @@ in rec {
       inherit namespace;
       extra-overlays = full-flake-options.extra-exported-overlays or {};
     };
+    channels = full-flake-options.channels or {};
 
     outputs-builder = channels: let
       user-outputs-builder =
@@ -172,12 +173,22 @@ in rec {
         darwinModules = darwin-modules;
         homeModules = home-modules;
 
-        channelsConfig = full-flake-options.channels-config or {};
+        channelsConfig =
+          full-flake-options.channels-config
+          or full-flake-options.channelsConfig
+          or {};
 
-        channels.nixpkgs.overlaysBuilder = snowfall-lib.overlay.create-overlays-builder {
-          inherit namespace;
-          extra-overlays = full-flake-options.overlays or [];
-        };
+        channels =
+          mapAttrs
+          (channel: config:
+            config
+            // {
+              overlaysBuilder = snowfall-lib.overlay.create-overlays-builder {
+                inherit namespace;
+                extra-overlays = full-flake-options.overlays or [];
+              };
+            })
+          ({nixpkgs = {};} // channels);
 
         outputsBuilder = outputs-builder;
 

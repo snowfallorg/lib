@@ -150,9 +150,12 @@ in rec {
         overrides = (full-flake-options.checks or {}) // (user-outputs.checks or {});
         alias = alias.checks or {};
       };
+      formatter = snowfall-lib.formatter.create-formatter {
+        inherit channels;
+      };
 
       outputs = {
-        inherit packages checks;
+        inherit packages checks formatter;
 
         devShells = shells;
       };

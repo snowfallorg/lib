@@ -17,6 +17,7 @@
   "kexec"
   "kexec-bundle"
   "kubevirt"
+  "proxmox-lxc"
   "lxc-metadata"
   "lxc"
   "openstack"

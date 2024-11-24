@@ -51,6 +51,6 @@ in {
       aliased-shells = mapAttrs (name: value: shells-without-aliases.${value}) alias;
       shells = shells-without-aliases // aliased-shells // overrides;
     in
-      filterPackages pkgs.system shells;
+      filterPackages pkgs.stdenv.hostPlatform.system shells;
   };
 }

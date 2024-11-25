@@ -51,6 +51,6 @@ in {
       aliased-checks = mapAttrs (name: value: checks-without-aliases.${value}) alias;
       checks = checks-without-aliases // aliased-checks // overrides;
     in
-      filterPackages pkgs.system checks;
+      filterPackages pkgs.stdenv.hostPlatform.system checks;
   };
 }

@@ -262,7 +262,7 @@ in {
       extra-special-args-module = args @ {
         config,
         pkgs,
-        system ? pkgs.system,
+        system ? pkgs.stdenv.hostPlatform.system,
         target ? system,
         format ? "home",
         host ? "",
@@ -297,7 +297,7 @@ in {
               options,
               pkgs,
               host ? "",
-              system ? pkgs.system,
+              system ? pkgs.stdenv.hostPlatform.system,
               ...
             }: let
               host-matches =

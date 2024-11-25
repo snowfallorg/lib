@@ -68,6 +68,6 @@ in {
       aliased-packages = mapAttrs (name: value: packages-without-aliases.${value}) alias;
       packages = packages-without-aliases // aliased-packages // overrides;
     in
-      filterPackages pkgs.system packages;
+      filterPackages pkgs.stdenv.hostPlatform.system packages;
   };
 }

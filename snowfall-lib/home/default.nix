@@ -91,6 +91,7 @@ in {
       system ? "x86_64-linux",
     }: let
       user-metadata = split-user-and-host name;
+      unique-name = if user-metadata.host == "" then "${user-metadata.user}@${system}" else name;
 
       # NOTE: home-manager has trouble with `pkgs` recursion if it isn't passed in here.
       pkgs = user-inputs.self.pkgs.${system}.${channelName} // {lib = home-lib;};
@@ -110,7 +111,8 @@ in {
           ++ modules;
 
         specialArgs = {
-          inherit name system;
+          inherit system;
+          name = unique-name;
           inherit (user-metadata) user host;
 
           format = "home";
@@ -161,16 +163,19 @@ in {
     get-target-homes-metadata = target: let
       homes = snowfall-lib.fs.get-directories target;
       existing-homes = builtins.filter (home: builtins.pathExists "${home}/default.nix") homes;
-      create-home-metadata = path: {
-        path = "${path}/default.nix";
+      create-home-metadata = path: let
         # We are building flake outputs based on file contents. Nix doesn't like this
         # so we have to explicitly discard the string's path context to allow us to
         # use the name as a variable.
-        name = builtins.unsafeDiscardStringContext (builtins.baseNameOf path);
+        basename = builtins.unsafeDiscardStringContext (builtins.baseNameOf path);
         # We are building flake outputs based on file contents. Nix doesn't like this
         # so we have to explicitly discard the string's path context to allow us to
         # use the name as a variable.
         system = builtins.unsafeDiscardStringContext (builtins.baseNameOf target);
+        name = if !(hasInfix "@" basename) then "${basename}@${system}" else basename;
+      in {
+        path = "${path}/default.nix";
+        inherit name system;
       };
       home-configurations = builtins.map create-home-metadata existing-homes;
     in
@@ -301,8 +306,11 @@ in {
               ...
             }: let
               host-matches =
-                (created-user.specialArgs.host == host)
-                || (created-user.specialArgs.host == "" && created-user.specialArgs.system == system);
+              let
+                home-metadata = split-user-and-host name;
+              in
+                (name == "${user-name}@${host}")
+                || (home-metadata.user == user-name && home-metadata.host == system);
 
               # NOTE: To conform to the config structure of home-manager, we have to
               # remap the options coming from `snowfallorg.user.<name>.home.config` since `mkAliasDefinitions`

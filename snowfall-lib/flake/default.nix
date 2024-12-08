@@ -199,11 +199,6 @@ in rec {
   in
     flake-outputs // {
       packages = flake-outputs.packages // (builtins.listToAttrs (
-          let
-            systems = builtins.attrValues (
-              builtins.foldl' (acc: home: acc // { ${home.system} = home.system; }) {} (builtins.attrValues homes)
-            );
-          in
           builtins.map (system: {
             name = system;
             value = flake-outputs.packages.${system} // {
@@ -219,7 +214,7 @@ in rec {
                 in
                   renamedHomeConfigurations;
             };
-          }) systems
+          }) core-inputs.flake-utils-plus.lib.defaultSystems
         ));
     };
 }

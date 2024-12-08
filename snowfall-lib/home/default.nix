@@ -91,7 +91,10 @@ in {
       system ? "x86_64-linux",
     }: let
       user-metadata = split-user-and-host name;
-      unique-name = if user-metadata.host == "" then "${user-metadata.user}@${system}" else name;
+      unique-name =
+        if user-metadata.host == ""
+        then "${user-metadata.user}@${system}"
+        else name;
 
       # NOTE: home-manager has trouble with `pkgs` recursion if it isn't passed in here.
       pkgs = user-inputs.self.pkgs.${system}.${channelName} // {lib = home-lib;};
@@ -172,7 +175,10 @@ in {
         # so we have to explicitly discard the string's path context to allow us to
         # use the name as a variable.
         system = builtins.unsafeDiscardStringContext (builtins.baseNameOf target);
-        name = if !(hasInfix "@" basename) then "${basename}@${system}" else basename;
+        name =
+          if !(hasInfix "@" basename)
+          then "${basename}@${system}"
+          else basename;
       in {
         path = "${path}/default.nix";
         inherit name system;

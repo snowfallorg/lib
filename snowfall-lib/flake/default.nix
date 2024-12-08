@@ -197,24 +197,31 @@ in rec {
         inherit overlays;
       };
   in
-    flake-outputs // {
-      packages = flake-outputs.packages // (builtins.listToAttrs (
+    flake-outputs
+    // {
+      packages =
+        flake-outputs.packages
+        // (builtins.listToAttrs (
           builtins.map (system: {
             name = system;
-            value = flake-outputs.packages.${system} // {
-              homeConfigurations =
-                let
+            value =
+              flake-outputs.packages.${system}
+              // {
+                homeConfigurations = let
                   homeNames = filterAttrs (_: home: home.system == system) homes;
                   homeConfigurations = mapAttrs (home-name: _: flake-outputs.homeConfigurations.${home-name}) homeNames;
-                  renamedHomeConfigurations = mapAttrs' (name: value:
-                    if hasSuffix "@${system}" name
-                    then nameValuePair (removeSuffix "@${system}" name) value 
-                    else nameValuePair name value
-                  ) homeConfigurations;
+                  renamedHomeConfigurations =
+                    mapAttrs' (
+                      name: value:
+                        if hasSuffix "@${system}" name
+                        then nameValuePair (removeSuffix "@${system}" name) value
+                        else nameValuePair name value
+                    )
+                    homeConfigurations;
                 in
                   renamedHomeConfigurations;
-            };
-          }) core-inputs.flake-utils-plus.lib.defaultSystems
+              };
+          }) (builtins.attrNames flake-outputs.pkgs)
         ));
     };
 }

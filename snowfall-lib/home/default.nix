@@ -306,11 +306,8 @@ in {
               ...
             }: let
               host-matches =
-              let
-                home-metadata = split-user-and-host name;
-              in
                 (name == "${user-name}@${host}")
-                || (home-metadata.user == user-name && home-metadata.host == system);
+                || (name == "${user-name}@${system}");
 
               # NOTE: To conform to the config structure of home-manager, we have to
               # remap the options coming from `snowfallorg.user.<name>.home.config` since `mkAliasDefinitions`

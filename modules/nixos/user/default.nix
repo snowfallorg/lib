@@ -100,7 +100,7 @@ in {
 
                         config = {
                           submoduleSupport.enable = true;
-                          submoduleSupport.externalPackageInstall = cfg.useUserPackages;
+                          submoduleSupport.externalPackageInstall = config.home-manager.useUserPackages;
 
                           home.username = config.users.users.${name}.name;
                           home.homeDirectory = config.users.users.${name}.home;

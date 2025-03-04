@@ -3,14 +3,12 @@
   user-inputs,
   snowfall-lib,
   snowfall-config,
-}:
-let
+}: let
   inherit (builtins) baseNameOf;
   inherit (core-inputs.nixpkgs.lib) assertMsg foldl mapAttrs;
 
   user-templates-root = snowfall-lib.fs.get-snowfall-file "templates";
-in
-{
+in {
   template = {
     ## Create flake templates.
     ##
@@ -24,35 +22,34 @@ in
     ## { another-template = ...; my-template = ...; default = ...; }
     ## ```
     #@ Attrs -> Attrs
-    create-templates =
-      {
-        src ? user-templates-root,
-        overrides ? { },
-        alias ? { },
-      }:
-      let
-        user-templates = snowfall-lib.fs.get-directories src;
-        create-template-metadata = template: {
-          name = builtins.unsafeDiscardStringContext (baseNameOf template);
-          path = template;
-          inherit (import (template + "/flake.nix")) description;
-        };
-        templates-metadata = builtins.map create-template-metadata user-templates;
-        merge-templates =
-          templates: metadata:
-          templates
-          // {
-            ${metadata.name} = (overrides.${metadata.name} or { }) // {
+    create-templates = {
+      src ? user-templates-root,
+      overrides ? {},
+      alias ? {},
+    }: let
+      user-templates = snowfall-lib.fs.get-directories src;
+      create-template-metadata = template: {
+        name = builtins.unsafeDiscardStringContext (baseNameOf template);
+        path = template;
+        inherit (import (template + "/flake.nix")) description;
+      };
+      templates-metadata = builtins.map create-template-metadata user-templates;
+      merge-templates = templates: metadata:
+        templates
+        // {
+          ${metadata.name} =
+            (overrides.${metadata.name} or {})
+            // {
               inherit (metadata) path description;
             };
-          };
-        templates-without-aliases = foldl merge-templates { } templates-metadata;
-        aliased-templates = mapAttrs (name: value: templates-without-aliases.${value}) alias;
-        unused-overrides = builtins.removeAttrs overrides (
-          builtins.map (metadata: metadata.name) templates-metadata
-        );
-        templates = templates-without-aliases // aliased-templates // unused-overrides;
-      in
+        };
+      templates-without-aliases = foldl merge-templates {} templates-metadata;
+      aliased-templates = mapAttrs (name: value: templates-without-aliases.${value}) alias;
+      unused-overrides = builtins.removeAttrs overrides (
+        builtins.map (metadata: metadata.name) templates-metadata
+      );
+      templates = templates-without-aliases // aliased-templates // unused-overrides;
+    in
       templates;
   };
 }

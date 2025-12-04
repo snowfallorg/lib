@@ -18,19 +18,19 @@ core-inputs: user-options: let
 
   user-inputs = user-options.inputs // {src = user-options.src;};
 
-  inherit (core-inputs.nixpkgs.lib) assertMsg fix filterAttrs mergeAttrs fold recursiveUpdate callPackageWith isFunction;
+  inherit (core-inputs.nixpkgs.lib) assertMsg fix filterAttrs mergeAttrs foldr recursiveUpdate callPackageWith isFunction;
 
   # Recursively merge a list of attribute sets.
   # Type: [Attrs] -> Attrs
   # Usage: merge-deep [{ x = 1; } { x = 2; }]
   #   result: { x = 2; }
-  merge-deep = fold recursiveUpdate {};
+  merge-deep = foldr recursiveUpdate {};
 
   # Merge the root of a list of attribute sets.
   # Type: [Attrs] -> Attrs
   # Usage: merge-shallow [{ x = 1; } { x = 2; }]
   #   result: { x = 2; }
-  merge-shallow = fold mergeAttrs {};
+  merge-shallow = foldr mergeAttrs {};
 
   # Transform an attribute set of inputs into an attribute set where
   # the values are the inputs' `lib` attribute. Entries without a `lib`

@@ -1,3 +1,11 @@
+# Call For Maintainers 📣
+
+Hello! Originally developed by Jake Hamilton, Snowfall Lib has been effectively unmaintained for some time now.
+If you still use Snowfall Lib and would like to take over maintenance of the project, please get in touch using
+the [Discussion page](https://github.com/snowfallorg/lib/discussions/191).
+
+---
+
 # Snowfall Lib
 
 <p>

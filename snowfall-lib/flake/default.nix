@@ -174,9 +174,13 @@ in rec {
 
         channelsConfig = full-flake-options.channels-config or {};
 
-        channels.nixpkgs.overlaysBuilder = snowfall-lib.overlay.create-overlays-builder {
-          inherit namespace;
-          extra-overlays = full-flake-options.overlays or [];
+        channels = custom-flake-options.channels // {
+          nixpkgs = custom-flake-options.channels.nixpkgs // {
+            overlaysBuilder = snowfall-lib.overlay.create-overlays-builder {
+              inherit namespace;
+              extra-overlays = full-flake-options.overlays or [ ];
+            };
+          };
         };
 
         outputsBuilder = outputs-builder;

@@ -2,11 +2,8 @@
   description = "Snowfall Lib";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/release-23.11";
-    # NOTE: `nix flake lock --update-input flake-utils-plus` is currently NOT
-    # giving us the appropriate revision. We need a fix from a recent PR in
-    # FUP, so this revision is being hard coded here for now.
-    flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus?rev=3542fe9126dc492e53ddd252bb0260fe035f2c0f";
+    nixpkgs.url = "github:nixos/nixpkgs/release-26.05";
+    flake-utils-plus.url = "github:gytis-ivaskevicius/flake-utils-plus?ref=v1.6.0";
 
     flake-compat = {
       url = "github:edolstra/flake-compat";

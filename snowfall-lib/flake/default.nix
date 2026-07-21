@@ -4,7 +4,7 @@
   snowfall-lib,
   snowfall-config,
 }: let
-  inherit (core-inputs.nixpkgs.lib) assertMsg foldl filterAttrs const;
+  inherit (core-inputs.nixpkgs.lib) assertMsg foldl filterAttrs const mapAttrs mapAttrs' hasSuffix removeSuffix nameValuePair;
 in rec {
   flake = rec {
     ## Remove the `self` attribute from an attribute set.
@@ -197,5 +197,31 @@ in rec {
         inherit overlays;
       };
   in
-    flake-outputs;
+    flake-outputs
+    // {
+      packages =
+        flake-outputs.packages
+        // (builtins.listToAttrs (
+          builtins.map (system: {
+            name = system;
+            value =
+              flake-outputs.packages.${system}
+              // {
+                homeConfigurations = let
+                  homeNames = filterAttrs (_: home: home.system == system) homes;
+                  homeConfigurations = mapAttrs (home-name: _: flake-outputs.homeConfigurations.${home-name}) homeNames;
+                  renamedHomeConfigurations =
+                    mapAttrs' (
+                      name: value:
+                        if hasSuffix "@${system}" name
+                        then nameValuePair (removeSuffix "@${system}" name) value
+                        else nameValuePair name value
+                    )
+                    homeConfigurations;
+                in
+                  renamedHomeConfigurations;
+              };
+          }) (builtins.attrNames flake-outputs.pkgs)
+        ));
+    };
 }

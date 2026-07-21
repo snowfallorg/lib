@@ -31,6 +31,7 @@ in {
       create-template-metadata = template: {
         name = builtins.unsafeDiscardStringContext (baseNameOf template);
         path = template;
+        inherit (import (template + "/flake.nix")) description;
       };
       templates-metadata = builtins.map create-template-metadata user-templates;
       merge-templates = templates: metadata:
@@ -39,12 +40,14 @@ in {
           ${metadata.name} =
             (overrides.${metadata.name} or {})
             // {
-              inherit (metadata) path;
+              inherit (metadata) path description;
             };
         };
       templates-without-aliases = foldl merge-templates {} templates-metadata;
       aliased-templates = mapAttrs (name: value: templates-without-aliases.${value}) alias;
-      unused-overrides = builtins.removeAttrs overrides (builtins.map (metadata: metadata.name) templates-metadata);
+      unused-overrides = builtins.removeAttrs overrides (
+        builtins.map (metadata: metadata.name) templates-metadata
+      );
       templates = templates-without-aliases // aliased-templates // unused-overrides;
     in
       templates;

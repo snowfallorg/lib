@@ -32,6 +32,7 @@ in {
           user-inputs
           // {
             inherit channels;
+            inherit (snowfall-config) namespace;
             inputs = user-inputs;
             lib = snowfall-lib.internal.system-lib;
           }
